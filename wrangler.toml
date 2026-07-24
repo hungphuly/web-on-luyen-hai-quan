@@ -1,7 +1,11 @@
 name = "web-on-luyen-hai-quan"
 compatibility_date = "2026-07-22"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".open-next/cloudflare-pages"
+main = ".open-next/worker/index.mjs"
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
 
 [env.production]
 # Add environment variables here if needed
