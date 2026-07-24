@@ -1,4 +1,4 @@
-name = "web-on-luyen-hai-quan"
+name = "web-on-luyen"
 compatibility_date = "2026-07-22"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".open-next/cloudflare-pages"
