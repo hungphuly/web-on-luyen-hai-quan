@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Web Ôn Luyện Hải Quan",
+  title: "ÔN LUYỆN THI CHỨNG CHỈ NGHIỆP VỤ HẢI QUAN",
   description: "Nền tảng ôn luyện trắc nghiệm, thi thử, tra cứu pháp luật tự động cho học viên ôn thi Hải Quan",
   manifest: "/manifest.json",
 };

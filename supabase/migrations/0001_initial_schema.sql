@@ -1,6 +1,6 @@
 -- Học viên
 create table hoc_vien (
-  id uuid primary key default auth.uid(),
+  id uuid primary key references auth.users(id) on delete cascade default auth.uid(),
   email text unique not null,
   ho_ten text not null,
   loai_tai_khoan text default 'free' check (loai_tai_khoan in ('free', 'vip', 'admin')),
@@ -37,6 +37,8 @@ create table ung_ho (
   trang_thai text default 'cho_xu_ly' check (trang_thai in ('cho_xu_ly','thanh_cong','that_bai')),
   created_at timestamptz default now()
 );
+alter table ung_ho enable row level security;
+create policy "xem_ung_ho_cong_khai" on ung_ho for select using (cong_khai = true);
 
 -- Kết quả thi
 create table ket_qua_thi (
@@ -48,6 +50,8 @@ create table ket_qua_thi (
   thoi_gian_hoan_thanh int,
   ngay_thi timestamptz default now()
 );
+alter table ket_qua_thi enable row level security;
+create policy "hoc_vien_xem_ket_qua" on ket_qua_thi for select using (hoc_vien_id = auth.uid());
 
 -- Giai đoạn 2 — bảng riêng, KHÔNG dùng chung với ung_ho
 create table goi_thue_bao (
@@ -61,6 +65,8 @@ create table goi_thue_bao (
   ngay_ket_thuc timestamptz,
   created_at timestamptz default now()
 );
+alter table goi_thue_bao enable row level security;
+create policy "hoc_vien_xem_goi_thue_bao" on goi_thue_bao for select using (hoc_vien_id = auth.uid());
 
 -- Bổ sung explicit Postgres grants cho PostgREST API (yêu cầu từ 30/05/2026)
 grant usage on schema public to postgres, anon, authenticated, service_role;

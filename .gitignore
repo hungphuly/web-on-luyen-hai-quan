@@ -43,3 +43,8 @@ next-env.d.ts
 # cloudflare & opennext
 /.open-next/
 /.wrangler/
+
+# Explicit exclusions for this project
+.env
+.env.local
+supabase-keepalive-worker/node_modules/

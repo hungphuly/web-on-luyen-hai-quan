@@ -1,0 +1,116 @@
+'use client'
+
+import { useState, useEffect, useTransition } from 'react';
+import { DeThi, KetQuaThiThu } from '@/lib/modules/thi-thu/types';
+import { nopBaiThiThu } from './actions';
+import { Button } from '@/components/ui/button';
+import { Loader2, Clock, CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export function ThiThuSession({ deThi, chuyenDeTen, onFinish }: { deThi: DeThi, chuyenDeTen: string, onFinish: (kq: KetQuaThiThu) => void }) {
+  const [timeLeft, setTimeLeft] = useState(deThi.thoiGianLamBai);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [isPending, startTransition] = useTransition();
+
+  // Đếm ngược
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      if (!isPending) handleSubmit(); // Hết giờ tự nộp
+      return;
+    }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const handleSelect = (cauHoiId: string, optionKey: string) => {
+    if (isPending) return;
+    setAnswers(prev => ({
+      ...prev,
+      [cauHoiId]: optionKey
+    }));
+  };
+
+  const handleSubmit = () => {
+    startTransition(async () => {
+      try {
+        const payload = deThi.cauHoi.map(c => ({
+          cauHoiId: c.id,
+          luaChon: answers[c.id] || null,
+          noiDung: c.noi_dung,
+          cacLuaChon: c.cac_lua_chon
+        }));
+        
+        const thoiGianDaLam = deThi.thoiGianLamBai - timeLeft;
+        const ketQua = await nopBaiThiThu(deThi.phienThiId, deThi.chuyenDeId, payload, thoiGianDaLam);
+        onFinish(ketQua);
+      } catch (error: any) {
+        alert('Có lỗi khi nộp bài: ' + error.message);
+      }
+    });
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="sticky top-[60px] md:top-[76px] z-20 bg-white/80 backdrop-blur-md border-b -mx-4 md:-mx-8 px-4 md:px-8 py-3 flex items-center justify-between shadow-sm">
+        <div className="font-bold text-gray-800 hidden md:block">Thi thử: {chuyenDeTen}</div>
+        <div className={cn(
+          "flex items-center gap-2 font-mono text-xl font-bold px-4 py-1.5 rounded-full",
+          timeLeft <= 300 ? "bg-red-100 text-red-600 animate-pulse" : "bg-blue-50 text-blue-700"
+        )}>
+          <Clock className="w-5 h-5" />
+          {formatTime(timeLeft)}
+        </div>
+        <Button onClick={handleSubmit} disabled={isPending} className="rounded-full shadow-md font-bold">
+          {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+          Nộp bài
+        </Button>
+      </div>
+
+      <div className="space-y-8 max-w-3xl mx-auto">
+        {deThi.cauHoi.map((q, i) => (
+          <div key={q.id} className="bg-white border rounded-2xl p-6 shadow-sm">
+            <h3 className="font-bold text-lg mb-4 flex gap-2">
+              <span className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                {i + 1}
+              </span>
+              <span className="mt-1 leading-relaxed">{q.noi_dung}</span>
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(q.cac_lua_chon).map(([key, val]) => (
+                <button
+                  key={key}
+                  onClick={() => handleSelect(q.id, key)}
+                  disabled={isPending}
+                  className={cn(
+                    "w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3 group",
+                    answers[q.id] === key 
+                      ? "border-primary bg-primary/5 text-primary" 
+                      : "border-gray-200 hover:border-primary/30 text-gray-700"
+                  )}
+                >
+                  <div className={cn(
+                    "w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center font-bold text-sm",
+                    answers[q.id] === key 
+                      ? "border-primary bg-primary text-white" 
+                      : "border-gray-300 group-hover:border-primary/50 text-gray-500"
+                  )}>
+                    {key.toUpperCase()}
+                  </div>
+                  <span className="mt-0.5 leading-relaxed">{val as string}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
