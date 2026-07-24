@@ -33,6 +33,14 @@ export function ThiThuSession({ deThi, chuyenDeTen, onFinish }: { deThi: DeThi, 
   };
 
   const handleSubmit = () => {
+    if (Object.keys(answers).length === 0) {
+      alert('Bạn chưa làm câu nào');
+      return;
+    }
+    
+    const isConfirm = window.confirm('Bạn có chắc chắn muốn nộp bài?');
+    if (!isConfirm) return;
+
     startTransition(async () => {
       try {
         const payload = deThi.cauHoi.map(c => ({
@@ -43,8 +51,13 @@ export function ThiThuSession({ deThi, chuyenDeTen, onFinish }: { deThi: DeThi, 
         }));
         
         const thoiGianDaLam = deThi.thoiGianLamBai - timeLeft;
-        const ketQua = await nopBaiThiThu(deThi.phienThiId, deThi.chuyenDeId, payload, thoiGianDaLam);
-        onFinish(ketQua);
+        const ketQua: any = await nopBaiThiThu(deThi.phienThiId, deThi.chuyenDeId, payload, thoiGianDaLam);
+        
+        if (ketQua?.error) {
+          alert('Lỗi: ' + ketQua.error);
+        } else {
+          onFinish(ketQua);
+        }
       } catch (error: any) {
         alert('Có lỗi khi nộp bài: ' + error.message);
       }

@@ -38,8 +38,12 @@ export function OnLuyenSession({ questions, chuyenDeTen }: { questions: CauHoiPu
 
     startTransition(async () => {
       try {
-        const res = await chamDiemCauHoi(question.id, selectedOption, phienId);
-        setResult(res);
+        const res: any = await chamDiemCauHoi(question.id, selectedOption, phienId);
+        if (res?.error) {
+          alert(res.error);
+        } else {
+          setResult(res);
+        }
       } catch (error: any) {
         alert(error.message || 'Có lỗi xảy ra khi chấm điểm');
       }
