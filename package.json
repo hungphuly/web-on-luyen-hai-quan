@@ -30,8 +30,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@emnapi/core": "^1.11.2",
-    "@emnapi/runtime": "^1.11.2",
     "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
