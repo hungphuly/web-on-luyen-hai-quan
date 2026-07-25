@@ -55,7 +55,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect to dashboard if logged in and on auth routes
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/profile'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
