@@ -88,16 +88,22 @@ export function MobileNav({ userRole }: { userRole?: string }) {
                       const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
 
                       let iconColorClass = "text-muted-foreground"
+                      let bgClass = "bg-muted/50"
                       if (isActive) {
                         iconColorClass = "text-primary"
+                        bgClass = "bg-primary/15"
                       } else if (item.href.startsWith('/on-luyen') || item.href.startsWith('/bai-giang') || item.href.startsWith('/tai-khoan')) {
-                        iconColorClass = "text-blue-500"
+                        iconColorClass = "text-blue-600"
+                        bgClass = "bg-blue-600/10"
                       } else if (item.href.startsWith('/tai-lieu')) {
-                        iconColorClass = "text-accent"
+                        iconColorClass = "text-amber-600"
+                        bgClass = "bg-amber-600/10"
                       } else if (item.href === '/ung-ho') {
-                        iconColorClass = "text-rose-500"
+                        iconColorClass = "text-rose-600"
+                        bgClass = "bg-rose-600/10"
                       } else if (item.href.startsWith('/admin')) {
                         iconColorClass = "text-slate-600"
+                        bgClass = "bg-slate-600/10"
                       }
 
                       return (
@@ -106,11 +112,13 @@ export function MobileNav({ userRole }: { userRole?: string }) {
                           href={item.href}
                           onClick={() => setOpen(false)}
                           className={cn(
-                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50",
+                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50 group",
                             isActive ? "bg-sidebar-active-bg text-primary font-semibold" : "text-muted-foreground"
                           )}
                         >
-                          {Icon && <Icon className={cn("h-5 w-5", iconColorClass)} />}
+                          <div className={cn("p-1.5 rounded-md flex items-center justify-center transition-colors group-hover:bg-primary/10 group-hover:text-primary", bgClass)}>
+                            {Icon && <Icon className={cn("h-5 w-5", iconColorClass, "group-hover:text-primary")} />}
+                          </div>
                           {item.title}
                         </Link>
                       )

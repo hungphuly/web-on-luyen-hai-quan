@@ -66,12 +66,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect root path to profile or login
-  if (request.nextUrl.pathname === '/') {
-    const url = request.nextUrl.clone()
-    url.pathname = user ? '/profile' : '/login'
-    return NextResponse.redirect(url)
-  }
+  // Redirect root path to profile or login is removed to allow HomePage to render
 
   return supabaseResponse
 }

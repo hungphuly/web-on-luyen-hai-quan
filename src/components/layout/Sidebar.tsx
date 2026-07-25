@@ -87,16 +87,22 @@ export function Sidebar({ userRole }: { userRole?: string }) {
                         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
 
                         let iconColorClass = "text-muted-foreground"
+                        let bgClass = "bg-muted/50"
                         if (isActive) {
                           iconColorClass = "text-primary"
+                          bgClass = "bg-primary/15"
                         } else if (item.href.startsWith('/on-luyen') || item.href.startsWith('/bai-giang') || item.href.startsWith('/tai-khoan')) {
-                          iconColorClass = "text-blue-500"
+                          iconColorClass = "text-blue-600"
+                          bgClass = "bg-blue-600/10"
                         } else if (item.href.startsWith('/tai-lieu')) {
-                          iconColorClass = "text-accent"
+                          iconColorClass = "text-amber-600"
+                          bgClass = "bg-amber-600/10"
                         } else if (item.href === '/ung-ho') {
-                          iconColorClass = "text-rose-500"
+                          iconColorClass = "text-rose-600"
+                          bgClass = "bg-rose-600/10"
                         } else if (item.href.startsWith('/admin')) {
                           iconColorClass = "text-slate-600"
+                          bgClass = "bg-slate-600/10"
                         }
 
                         return (
@@ -104,11 +110,13 @@ export function Sidebar({ userRole }: { userRole?: string }) {
                             key={index}
                             href={item.href}
                             className={cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50",
+                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50 group",
                               isActive ? "bg-sidebar-active-bg text-primary font-semibold" : "text-muted-foreground"
                             )}
                           >
-                            {Icon && <Icon className={cn("h-4 w-4", iconColorClass)} />}
+                            <div className={cn("p-1.5 rounded-md flex items-center justify-center transition-colors group-hover:bg-primary/10 group-hover:text-primary", bgClass)}>
+                              {Icon && <Icon className={cn("h-4 w-4", iconColorClass, "group-hover:text-primary")} />}
+                            </div>
                             {item.title}
                           </Link>
                         )
