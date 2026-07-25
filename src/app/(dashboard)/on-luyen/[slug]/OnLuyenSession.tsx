@@ -81,52 +81,57 @@ export function OnLuyenSession({ questions, chuyenDeTen }: { questions: CauHoiPu
 
       <div className="p-4 md:p-6 space-y-6">
         {/* Nội dung câu hỏi */}
-        <h3 className="text-lg font-bold text-gray-900 leading-relaxed">
-          {question.noi_dung}
+        <h3 className="font-bold text-lg text-gray-900 flex gap-2">
+          <span className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+            {currentIndex + 1}
+          </span>
+          <span className="mt-1 leading-relaxed">{question.noi_dung}</span>
         </h3>
 
         {/* Các lựa chọn */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {['a', 'b', 'c', 'd'].map((key) => {
             const label = question.cac_lua_chon[key as keyof typeof question.cac_lua_chon];
             if (!label) return null;
 
             // Xử lý logic màu sắc sau khi có kết quả
-            let itemClass = "border-gray-200 hover:border-primary/40 hover:bg-gray-50";
-            let indicatorClass = "bg-gray-100 text-gray-600";
+            let itemClass = "border-gray-200 hover:border-primary/30 text-gray-700 bg-white";
+            let indicatorClass = "border-gray-300 group-hover:border-primary/50 text-gray-500 bg-transparent";
 
             if (selectedOption === key && !result) {
-              itemClass = "border-primary bg-primary/5 ring-1 ring-primary";
-              indicatorClass = "bg-primary text-white";
+              itemClass = "border-primary bg-primary/5 text-primary";
+              indicatorClass = "border-primary bg-primary text-white";
             } else if (result) {
               // Đã nộp
               if (result.dap_an_dung.toLowerCase() === key) {
                 // Đây là đáp án ĐÚNG thật sự
-                itemClass = "border-green-500 bg-green-50 ring-1 ring-green-500";
-                indicatorClass = "bg-green-500 text-white";
+                itemClass = "border-green-500 bg-green-50 text-green-800";
+                indicatorClass = "border-green-500 bg-green-500 text-white";
               } else if (selectedOption === key && !result.dung) {
                 // Đây là đáp án người dùng CHỌN SAI
-                itemClass = "border-red-300 bg-red-50";
-                indicatorClass = "bg-red-500 text-white";
+                itemClass = "border-red-300 bg-red-50 text-red-800";
+                indicatorClass = "border-red-500 bg-red-500 text-white";
               } else {
                 // Các đáp án khác thì mờ đi
-                itemClass = "border-gray-100 opacity-50";
+                itemClass = "border-gray-100 opacity-50 bg-white";
+                indicatorClass = "border-gray-200 text-gray-400 bg-transparent";
               }
             }
 
             return (
-              <div 
+              <button 
                 key={key} 
                 onClick={() => handleSelect(key)}
-                className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${itemClass} ${result ? 'cursor-default' : ''}`}
+                disabled={!!result || isPending}
+                className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3 group ${itemClass} ${result ? 'cursor-default' : 'cursor-pointer'}`}
               >
-                <div className={`w-7 h-7 rounded-md flex items-center justify-center font-bold mr-3 text-sm shrink-0 transition-colors ${indicatorClass}`}>
+                <div className={`w-7 h-7 shrink-0 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ${indicatorClass}`}>
                   {key.toUpperCase()}
                 </div>
-                <span className={`font-medium text-sm ${result && result.dap_an_dung.toLowerCase() === key ? 'text-green-800' : 'text-gray-700'}`}>
+                <span className="mt-0.5 leading-relaxed font-medium">
                   {label}
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>

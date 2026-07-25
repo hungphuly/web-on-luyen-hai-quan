@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MENU_CONFIG } from '@/config/menu.config'
@@ -12,14 +12,41 @@ import { Button } from '@/components/ui/button'
 export function MobileNav({ userRole }: { userRole?: string }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  
+  // Khởi tạo state cho các nhóm đang mở (accordion)
+  const [openGroups, setOpenGroups] = useState<string[]>([])
+
+  // Tự động mở nhóm chứa trang hiện tại khi render lần đầu
+  useEffect(() => {
+    const activeGroupLabels: string[] = []
+    MENU_CONFIG.forEach(group => {
+      if (group.label === 'Quản trị' && userRole !== 'admin') return;
+      const hasActive = group.items.some(item => 
+        pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+      )
+      if (hasActive) {
+        activeGroupLabels.push(group.label)
+      }
+    })
+    setOpenGroups(activeGroupLabels)
+  }, [pathname, userRole])
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups(prev => 
+      prev.includes(label) 
+        ? prev.filter(g => g !== label) 
+        : [...prev, label]
+    )
+  }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<Button variant="outline" size="icon" className="shrink-0 lg:hidden" />}>
+    <>
+      <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
         <Icons.Menu className="h-5 w-5" />
         <span className="sr-only">Toggle navigation menu</span>
-      </SheetTrigger>
-      <SheetContent side="left" className="flex flex-col">
+      </Button>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="flex flex-col">
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <nav className="grid gap-2 text-lg font-medium">
           <Link
@@ -37,46 +64,58 @@ export function MobileNav({ userRole }: { userRole?: string }) {
               return null;
             }
 
+            const isOpen = openGroups.includes(group.label)
+
             return (
-              <div key={groupIndex} className="mb-4">
+              <div key={groupIndex} className="mb-2">
                 {group.label !== 'Khám phá' && (
-                  <h4 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    {group.label}
-                  </h4>
+                  <button 
+                    onClick={() => toggleGroup(group.label)}
+                    className="w-full flex items-center justify-between mb-2 px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  >
+                    <span>{group.label}</span>
+                    <Icons.ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-180" : "")} />
+                  </button>
                 )}
-                <div className="grid gap-1">
-                  {group.items.map((item, index) => {
-                    const Icon = item.icon ? (Icons as any)[item.icon.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')] : Icons.Circle;
-                    const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+                
+                <div className={cn(
+                  "grid gap-1 overflow-hidden transition-all duration-300 ease-in-out",
+                  isOpen || group.label === 'Khám phá' ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                )}>
+                  <div className="min-h-0 overflow-hidden flex flex-col gap-1">
+                    {group.items.map((item, index) => {
+                      const Icon = item.icon ? (Icons as any)[item.icon.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')] : Icons.Circle;
+                      const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
 
-                    let iconColorClass = "text-muted-foreground"
-                    if (isActive) {
-                      iconColorClass = "text-primary"
-                    } else if (item.href.startsWith('/on-luyen') || item.href.startsWith('/bai-giang') || item.href.startsWith('/tai-khoan')) {
-                      iconColorClass = "text-blue-500"
-                    } else if (item.href.startsWith('/tai-lieu')) {
-                      iconColorClass = "text-accent"
-                    } else if (item.href === '/ung-ho') {
-                      iconColorClass = "text-rose-500"
-                    } else if (item.href.startsWith('/admin')) {
-                      iconColorClass = "text-slate-600"
-                    }
+                      let iconColorClass = "text-muted-foreground"
+                      if (isActive) {
+                        iconColorClass = "text-primary"
+                      } else if (item.href.startsWith('/on-luyen') || item.href.startsWith('/bai-giang') || item.href.startsWith('/tai-khoan')) {
+                        iconColorClass = "text-blue-500"
+                      } else if (item.href.startsWith('/tai-lieu')) {
+                        iconColorClass = "text-accent"
+                      } else if (item.href === '/ung-ho') {
+                        iconColorClass = "text-rose-500"
+                      } else if (item.href.startsWith('/admin')) {
+                        iconColorClass = "text-slate-600"
+                      }
 
-                    return (
-                      <Link
-                        key={index}
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        className={cn(
-                          "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50",
-                          isActive ? "bg-sidebar-active-bg text-primary font-semibold" : "text-muted-foreground"
-                        )}
-                      >
-                        {Icon && <Icon className={cn("h-5 w-5", iconColorClass)} />}
-                        {item.title}
-                      </Link>
-                    )
-                  })}
+                      return (
+                        <Link
+                          key={index}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className={cn(
+                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50",
+                            isActive ? "bg-sidebar-active-bg text-primary font-semibold" : "text-muted-foreground"
+                          )}
+                        >
+                          {Icon && <Icon className={cn("h-5 w-5", iconColorClass)} />}
+                          {item.title}
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             );
@@ -84,5 +123,6 @@ export function MobileNav({ userRole }: { userRole?: string }) {
         </nav>
       </SheetContent>
     </Sheet>
+    </>
   )
 }

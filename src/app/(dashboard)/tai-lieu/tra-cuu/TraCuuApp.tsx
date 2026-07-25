@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { getDanhSachTaiLieu } from '@/lib/modules/tai-lieu/services/tai-lieu.service';
-import { Search, FileText, Download, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Search, FileText, Eye, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export function TraCuuApp({ initialData }: { initialData: any[] }) {
   const [data, setData] = useState(initialData);
@@ -97,14 +98,23 @@ export function TraCuuApp({ initialData }: { initialData: any[] }) {
             </div>
 
             <div className="shrink-0 mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-0">
-              <a 
-                href={doc.file_url} 
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-flex items-center justify-center w-full md:w-auto px-6 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg transition-colors"
-              >
-                <Download className="w-4 h-4 mr-2" /> Tải bản PDF
-              </a>
+              <Dialog>
+                <DialogTrigger className="inline-flex items-center justify-center w-full md:w-auto px-6 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg transition-colors">
+                  <Eye className="w-4 h-4 mr-2" /> Xem tài liệu
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle className="truncate pr-8 text-primary">{doc.ten_van_ban}</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex-1 w-full bg-gray-100 rounded-md overflow-hidden border mt-4 relative">
+                    <iframe 
+                      src={`${doc.file_url}#toolbar=0`} 
+                      className="absolute inset-0 w-full h-full border-0"
+                      title={doc.ten_van_ban}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         ))}

@@ -22,6 +22,7 @@ export function ThiThuSession({ deThi, chuyenDeTen, onFinish }: { deThi: DeThi, 
       setTimeLeft(prev => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft]);
 
   const handleSelect = (cauHoiId: string, optionKey: string) => {

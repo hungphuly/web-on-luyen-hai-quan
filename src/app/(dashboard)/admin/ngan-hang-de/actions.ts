@@ -119,3 +119,62 @@ export async function importExcelQuestions(formData: FormData) {
     return { success: false, errors: [{ row: 0, reason: `Lỗi không xác định: ${error.message}` }] };
   }
 }
+
+export async function updateCauHoi(id: string, formData: FormData) {
+  const supabase = await createClient();
+  
+  const chuyen_de_id = formData.get('chuyen_de_id') as string;
+  const noi_dung = formData.get('noi_dung') as string;
+  const dap_an_dung = formData.get('dap_an_dung') as string;
+  const giai_thich_chi_tiet = formData.get('giai_thich_chi_tiet') as string;
+  const can_cu_phap_ly = formData.get('can_cu_phap_ly') as string;
+  const do_kho = formData.get('do_kho') as string;
+  
+  const cac_lua_chon = {
+    a: formData.get('lua_chon_a') as string,
+    b: formData.get('lua_chon_b') as string,
+    c: formData.get('lua_chon_c') as string,
+    d: formData.get('lua_chon_d') as string,
+  };
+  
+  if (!noi_dung || !chuyen_de_id || !dap_an_dung || !cac_lua_chon.a || !cac_lua_chon.b) {
+    return { error: 'Vui lòng điền đủ các trường bắt buộc' };
+  }
+
+  const { error } = await supabase
+    .from('cau_hoi')
+    .update({ 
+      chuyen_de_id, 
+      noi_dung, 
+      cac_lua_chon, 
+      dap_an_dung, 
+      giai_thich_chi_tiet: giai_thich_chi_tiet || null, 
+      can_cu_phap_ly, 
+      do_kho 
+    })
+    .eq('id', id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/ngan-hang-de');
+  return { success: true };
+}
+
+export async function deleteCauHoi(id: string) {
+  const supabase = await createClient();
+  
+  const { error } = await supabase
+    .from('cau_hoi')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    if (error.code === '23503') {
+      return { error: 'Không thể xóa câu hỏi này vì đã có dữ liệu thi thử hoặc lịch sử ôn luyện liên kết. Hãy xóa các bản ghi lịch sử trước nếu bạn thực sự muốn xóa.' };
+    }
+    return { error: error.message };
+  }
+
+  revalidatePath('/admin/ngan-hang-de');
+  return { success: true };
+}
