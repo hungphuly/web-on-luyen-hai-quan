@@ -6,7 +6,6 @@ import { Search, FileText, Eye, CheckCircle2, XCircle, Loader2 } from 'lucide-re
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PDFViewer } from '@/components/shared/PDFViewer';
 
 export function TraCuuApp({ initialData }: { initialData: any[] }) {
   const [data, setData] = useState(initialData);
@@ -107,8 +106,12 @@ export function TraCuuApp({ initialData }: { initialData: any[] }) {
                   <DialogHeader>
                     <DialogTitle className="truncate pr-8 text-primary">{doc.ten_van_ban}</DialogTitle>
                   </DialogHeader>
-                  <div className="flex-1 w-full bg-gray-100 rounded-md overflow-hidden border mt-4 relative min-h-[500px]">
-                    <PDFViewer url={doc.file_url} />
+                  <div className="flex-1 w-full bg-gray-100 rounded-md overflow-hidden border mt-4 relative">
+                    <iframe 
+                      src={`${doc.file_url}#toolbar=0&navpanes=0`} 
+                      className="absolute inset-0 w-full h-full border-0"
+                      title={doc.ten_van_ban}
+                    />
                   </div>
                 </DialogContent>
               </Dialog>
