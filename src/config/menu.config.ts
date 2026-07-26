@@ -105,6 +105,12 @@ export const MENU_CONFIG: MenuGroup[] = [
         requiresAdmin: true,
       },
       {
+        title: 'Quản lý bài giảng',
+        href: '/admin/bai-giang',
+        icon: 'book-open',
+        requiresAdmin: true,
+      },
+      {
         title: 'Quản lý ngân hàng đề',
         href: '/admin/ngan-hang-de',
         icon: 'database',
