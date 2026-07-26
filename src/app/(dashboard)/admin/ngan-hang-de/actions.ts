@@ -61,8 +61,8 @@ export async function importExcelQuestions(formData: FormData) {
       const lua_chon_c = row[5]?.toString().trim();
       const lua_chon_d = row[6]?.toString().trim();
       const can_cu_phap_ly = row[7]?.toString().trim();
-      // Độ khó mặc định cho import hàng loạt là trung_binh
-      const do_kho = 'trung_binh'; 
+      const do_kho = parseInt(row[8]);
+      const phan_loai = parseInt(row[9]);
 
       // Validate nội dung và lựa chọn
       if (!noi_dung) errors.push({ row: tt, reason: 'Nội dung câu hỏi không được để trống' });
@@ -77,6 +77,14 @@ export async function importExcelQuestions(formData: FormData) {
 
       // Validate căn cứ pháp lý
       if (!can_cu_phap_ly) errors.push({ row: tt, reason: 'Căn cứ pháp lý không được để trống' });
+      
+      // Validate Độ khó và Phân loại
+      if (isNaN(do_kho) || ![1, 2, 3].includes(do_kho)) {
+        errors.push({ row: tt, reason: 'Độ khó phải là 1, 2 hoặc 3' });
+      }
+      if (isNaN(phan_loai) || ![1, 2, 3].includes(phan_loai)) {
+        errors.push({ row: tt, reason: 'Phân loại phải là 1, 2 hoặc 3' });
+      }
 
       // Nếu không có lỗi ở dòng này, chuẩn bị data
       if (errors.length === 0) {
@@ -87,6 +95,7 @@ export async function importExcelQuestions(formData: FormData) {
           dap_an_dung,
           can_cu_phap_ly,
           do_kho,
+          phan_loai,
           nguoi_tao_id: user.id
         });
       }
@@ -128,7 +137,8 @@ export async function updateCauHoi(id: string, formData: FormData) {
   const dap_an_dung = formData.get('dap_an_dung') as string;
   const giai_thich_chi_tiet = formData.get('giai_thich_chi_tiet') as string;
   const can_cu_phap_ly = formData.get('can_cu_phap_ly') as string;
-  const do_kho = formData.get('do_kho') as string;
+  const do_kho = parseInt(formData.get('do_kho') as string);
+  const phan_loai = parseInt(formData.get('phan_loai') as string);
   
   const cac_lua_chon = {
     a: formData.get('lua_chon_a') as string,
@@ -141,6 +151,10 @@ export async function updateCauHoi(id: string, formData: FormData) {
     return { error: 'Vui lòng điền đủ các trường bắt buộc' };
   }
 
+  if (isNaN(do_kho) || isNaN(phan_loai)) {
+    return { error: 'Độ khó và Phân loại không hợp lệ' };
+  }
+
   const { error } = await supabase
     .from('cau_hoi')
     .update({ 
@@ -150,7 +164,8 @@ export async function updateCauHoi(id: string, formData: FormData) {
       dap_an_dung, 
       giai_thich_chi_tiet: giai_thich_chi_tiet || null, 
       can_cu_phap_ly, 
-      do_kho 
+      do_kho,
+      phan_loai
     })
     .eq('id', id);
 

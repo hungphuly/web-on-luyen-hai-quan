@@ -45,7 +45,16 @@ export function ImportForm({ chuyenDeList }: { chuyenDeList: DanhMucChuyenDe[] }
 
   return (
     <div className="bg-white p-6 rounded-xl border shadow-sm">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Import dữ liệu từ Excel</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Import dữ liệu từ Excel</h2>
+        <a 
+          href="/mau_import_cau_hoi.xlsx" 
+          download 
+          className="text-sm text-primary hover:underline"
+        >
+          Tải file Excel mẫu
+        </a>
+      </div>
       
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

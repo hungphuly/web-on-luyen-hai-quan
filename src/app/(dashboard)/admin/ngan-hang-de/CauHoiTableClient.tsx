@@ -66,7 +66,7 @@ export function CauHoiTableClient({
           </DialogHeader>
           {editingItem && (
             <form onSubmit={handleSubmitEdit} className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="chuyen_de_id">Chuyên đề</Label>
                   <select 
@@ -90,9 +90,23 @@ export function CauHoiTableClient({
                     defaultValue={editingItem.do_kho} 
                     required
                   >
-                    <option value="de">Dễ</option>
-                    <option value="trung_binh">Trung bình</option>
-                    <option value="kho">Khó</option>
+                    <option value={1}>Dễ (1)</option>
+                    <option value={2}>Trung bình (2)</option>
+                    <option value={3}>Khó (3)</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phan_loai">Phân loại</Label>
+                  <select 
+                    id="phan_loai" 
+                    name="phan_loai" 
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    defaultValue={editingItem.phan_loai || 1} 
+                    required
+                  >
+                    <option value={1}>Ôn luyện (1)</option>
+                    <option value={2}>Thi thử (2)</option>
+                    <option value={3}>Thi thật (3)</option>
                   </select>
                 </div>
               </div>
@@ -188,6 +202,7 @@ export function CauHoiTableClient({
                 <th className="px-6 py-3">Chuyên đề</th>
                 <th className="px-6 py-3 min-w-[300px]">Nội dung</th>
                 <th className="px-6 py-3">Độ khó</th>
+                <th className="px-6 py-3">Phân loại</th>
                 <th className="px-6 py-3">Căn cứ pháp lý</th>
                 <th className="px-6 py-3 text-center">Đáp án</th>
                 <th className="px-6 py-3 text-right">Thao tác</th>
@@ -204,11 +219,16 @@ export function CauHoiTableClient({
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                      ${ch.do_kho === 'de' ? 'bg-green-100 text-green-700' : 
-                        ch.do_kho === 'trung_binh' ? 'bg-yellow-100 text-yellow-700' : 
+                      ${ch.do_kho === 1 ? 'bg-green-100 text-green-700' : 
+                        ch.do_kho === 2 ? 'bg-yellow-100 text-yellow-700' : 
                         'bg-red-100 text-red-700'}`}
                     >
-                      {ch.do_kho}
+                      {ch.do_kho === 1 ? 'Dễ' : ch.do_kho === 2 ? 'TB' : 'Khó'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                      {ch.phan_loai === 1 ? 'Ôn luyện' : ch.phan_loai === 2 ? 'Thi thử' : 'Thi thật'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-gray-500 text-xs line-clamp-2 max-w-[200px]">

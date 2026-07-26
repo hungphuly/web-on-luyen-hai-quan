@@ -182,7 +182,8 @@ create table public.cau_hoi (
   dap_an_dung char(1) not null,
   giai_thich_chi_tiet text,
   can_cu_phap_ly text not null,
-  do_kho text check (do_kho in ('de','trung_binh','kho')),
+  do_kho integer check (do_kho in (1, 2, 3)),
+  phan_loai integer default 1 check (phan_loai in (1, 2, 3)),
   nguoi_tao_id uuid references public.hoc_vien(id)
 );
 alter table public.cau_hoi enable row level security;
@@ -207,7 +208,9 @@ create view public.cau_hoi_public as
     id, 
     chuyen_de_id, 
     noi_dung, 
-    cac_lua_chon 
+    cac_lua_chon,
+    do_kho,
+    phan_loai
   from public.cau_hoi;
 
 -- ==========================================

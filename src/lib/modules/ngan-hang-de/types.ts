@@ -11,7 +11,8 @@ export interface CauHoiAdmin {
   dap_an_dung: 'a' | 'b' | 'c' | 'd';
   giai_thich_chi_tiet: string | null;
   can_cu_phap_ly: string;
-  do_kho: 'de' | 'trung_binh' | 'kho';
+  do_kho: 1 | 2 | 3;
+  phan_loai: 1 | 2 | 3;
   nguoi_tao_id: string | null;
   chuyen_de?: { ten: string }; // Join relation
 }
@@ -27,7 +28,8 @@ export interface ExcelRowData {
   van_ban_tham_chieu: string;
   dieu_khoan: string;
   giai_thich: string;
-  do_kho: string;
+  do_kho: number;
+  phan_loai: number;
 }
 
 export interface ImportError {

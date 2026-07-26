@@ -20,6 +20,9 @@
 
 ### Phase 4 — Ngân hàng câu hỏi (Admin)
 - [x] Module Admin tại `/admin/chuyen-de` và `/admin/ngan-hang-de`.
+- [x] Đã nâng cấp bảng `cau_hoi`: cấu trúc lại `do_kho` thành dạng số (1=Dễ, 2=TB, 3=Khó), và bổ sung `phan_loai` (1=Ôn luyện, 2=Thi thử, 3=Thi thật).
+- [x] Cập nhật giao diện Admin và script nhập Excel để tương thích cấu trúc mới, cung cấp sẵn file `mau_import_cau_hoi.xlsx` chuẩn.
+- [x] Luồng bốc câu hỏi Frontend đã hỗ trợ phân loại (Trắc nghiệm bốc `phan_loai=1`, Thi thử bốc `phan_loai` 2 hoặc 3).
 
 ### Phase 5 — Ôn luyện Trắc nghiệm
 - [x] Route `/on-luyen` (chọn chuyên đề) -> Trắc nghiệm từng câu (`/on-luyen/[slug]`).
