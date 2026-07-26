@@ -8,8 +8,9 @@ import { cn } from '@/lib/utils'
 import * as Icons from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
+import { signout } from '@/app/(auth)/actions'
 
-export function MobileNav({ userRole }: { userRole?: string }) {
+export function MobileNav({ userRole, userEmail, userFullName }: { userRole?: string, userEmail?: string, userFullName?: string }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   
@@ -48,87 +49,110 @@ export function MobileNav({ userRole }: { userRole?: string }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="flex flex-col">
         <SheetTitle className="sr-only">Menu</SheetTitle>
-        <nav className="grid gap-2 text-lg font-medium">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-lg font-semibold mb-4"
-            onClick={() => setOpen(false)}
-          >
-            <Icons.BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-primary font-bold">Ôn Luyện Hải Quan</span>
-          </Link>
-          
-          {MENU_CONFIG.map((group, groupIndex) => {
-            // Ẩn nhóm Quản trị nếu không phải admin
-            if (group.label === 'Quản trị' && userRole !== 'admin') {
-              return null;
-            }
+        <div className="flex-1 overflow-y-auto min-h-0 py-2">
+          <nav className="grid gap-2 text-lg font-medium">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-lg font-semibold mb-4"
+              onClick={() => setOpen(false)}
+            >
+              <Icons.BookOpen className="h-6 w-6 text-primary" />
+              <span className="text-primary font-bold">Ôn Luyện Hải Quan</span>
+            </Link>
+            
+            {MENU_CONFIG.map((group, groupIndex) => {
+              // Ẩn nhóm Quản trị nếu không phải admin
+              if (group.label === 'Quản trị' && userRole !== 'admin') {
+                return null;
+              }
 
-            const isOpen = openGroups.includes(group.label)
+              const isOpen = openGroups.includes(group.label)
 
-            return (
-              <div key={groupIndex} className="mb-2">
-                {group.label !== 'Khám phá' && (
-                  <button 
-                    onClick={() => toggleGroup(group.label)}
-                    className="w-full flex items-center justify-between mb-2 px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                  >
-                    <span>{group.label}</span>
-                    <Icons.ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-180" : "")} />
-                  </button>
-                )}
-                
-                <div className={cn(
-                  "grid gap-1 overflow-hidden transition-all duration-300 ease-in-out",
-                  isOpen || group.label === 'Khám phá' ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                )}>
-                  <div className="min-h-0 overflow-hidden flex flex-col gap-1">
-                    {group.items.map((item, index) => {
-                      const Icon = item.icon ? (Icons as any)[item.icon.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')] : Icons.Circle;
-                      const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+              return (
+                <div key={groupIndex} className="mb-2">
+                  {group.label !== 'Khám phá' && (
+                    <button 
+                      onClick={() => toggleGroup(group.label)}
+                      className="w-full flex items-center justify-between mb-2 px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                    >
+                      <span>{group.label}</span>
+                      <Icons.ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-180" : "")} />
+                    </button>
+                  )}
+                  
+                  <div className={cn(
+                    "grid gap-1 overflow-hidden transition-all duration-300 ease-in-out",
+                    isOpen || group.label === 'Khám phá' ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}>
+                    <div className="min-h-0 overflow-hidden flex flex-col gap-1">
+                      {group.items.map((item, index) => {
+                        const Icon = item.icon ? (Icons as any)[item.icon.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')] : Icons.Circle;
+                        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
 
-                      let iconColorClass = "text-muted-foreground"
-                      let bgClass = "bg-muted/50"
-                      if (isActive) {
-                        iconColorClass = "text-primary"
-                        bgClass = "bg-primary/15"
-                      } else if (item.href.startsWith('/on-luyen') || item.href.startsWith('/bai-giang') || item.href.startsWith('/tai-khoan')) {
-                        iconColorClass = "text-blue-600"
-                        bgClass = "bg-blue-600/10"
-                      } else if (item.href.startsWith('/tai-lieu')) {
-                        iconColorClass = "text-amber-600"
-                        bgClass = "bg-amber-600/10"
-                      } else if (item.href === '/ung-ho') {
-                        iconColorClass = "text-rose-600"
-                        bgClass = "bg-rose-600/10"
-                      } else if (item.href.startsWith('/admin')) {
-                        iconColorClass = "text-slate-600"
-                        bgClass = "bg-slate-600/10"
-                      }
+                        let iconColorClass = "text-muted-foreground"
+                        let bgClass = "bg-muted/50"
+                        if (isActive) {
+                          iconColorClass = "text-primary"
+                          bgClass = "bg-primary/15"
+                        } else if (item.href.startsWith('/on-luyen') || item.href.startsWith('/bai-giang') || item.href.startsWith('/tai-khoan')) {
+                          iconColorClass = "text-blue-600"
+                          bgClass = "bg-blue-600/10"
+                        } else if (item.href.startsWith('/tai-lieu')) {
+                          iconColorClass = "text-amber-600"
+                          bgClass = "bg-amber-600/10"
+                        } else if (item.href === '/ung-ho') {
+                          iconColorClass = "text-rose-600"
+                          bgClass = "bg-rose-600/10"
+                        } else if (item.href.startsWith('/admin')) {
+                          iconColorClass = "text-slate-600"
+                          bgClass = "bg-slate-600/10"
+                        }
 
-                      return (
-                        <Link
-                          key={index}
-                          href={item.href}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50 group",
-                            isActive ? "bg-sidebar-active-bg text-primary font-semibold" : "text-muted-foreground"
-                          )}
-                        >
-                          <div className={cn("p-1.5 rounded-md flex items-center justify-center transition-colors group-hover:bg-primary/10 group-hover:text-primary", bgClass)}>
-                            {Icon && <Icon className={cn("h-5 w-5", iconColorClass, "group-hover:text-primary")} />}
-                          </div>
-                          {item.title}
-                        </Link>
-                      )
-                    })}
+                        return (
+                          <Link
+                            key={index}
+                            href={item.href}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                              "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-primary hover:bg-sidebar-active-bg/50 group",
+                              isActive ? "bg-sidebar-active-bg text-primary font-semibold" : "text-muted-foreground"
+                            )}
+                          >
+                            <div className={cn("p-1.5 rounded-md flex items-center justify-center transition-colors group-hover:bg-primary/10 group-hover:text-primary", bgClass)}>
+                              {Icon && <Icon className={cn("h-5 w-5", iconColorClass, "group-hover:text-primary")} />}
+                            </div>
+                            {item.title}
+                          </Link>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* User Info and Logout */}
+        {userEmail && (
+          <div className="mt-auto border-t p-4 flex flex-col gap-3 shrink-0 mx-[-1rem]">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                {userFullName ? userFullName.charAt(0).toUpperCase() : userEmail.charAt(0).toUpperCase()}
               </div>
-            );
-          })}
-        </nav>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-base font-semibold truncate" title={userFullName || ''}>{userFullName || 'Học viên'}</span>
+                <span className="text-sm text-muted-foreground truncate" title={userEmail}>{userEmail}</span>
+              </div>
+            </div>
+            <form action={signout} className="w-full px-2">
+              <Button variant="outline" size="sm" type="submit" className="w-full flex items-center justify-start gap-2 text-muted-foreground hover:text-foreground">
+                <Icons.LogOut className="h-4 w-4" />
+                Đăng xuất
+              </Button>
+            </form>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
     </>
