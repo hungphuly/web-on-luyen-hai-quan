@@ -62,7 +62,7 @@ export function AIAssistantWidget() {
     }
   };
 
-  const isLimitReached = limitInfo && !limitInfo.unlimited && limitInfo.remaining !== undefined && limitInfo.remaining <= 0;
+  const isLimitReached = Boolean(limitInfo && !limitInfo.unlimited && limitInfo.remaining !== undefined && limitInfo.remaining <= 0);
 
   return (
     <>
