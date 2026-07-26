@@ -94,7 +94,7 @@ export const MENU_CONFIG: MenuGroup[] = [
     items: [
       {
         title: 'Chuyên đề',
-        href: '/tai-lieu/chuyen-de',
+        href: '/admin/chuyen-de',
         icon: 'file-text',
         requiresAdmin: true,
       },
