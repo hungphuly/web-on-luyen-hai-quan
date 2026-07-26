@@ -55,3 +55,35 @@ export async function signout() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+export async function resetPassword(formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get('email') as string
+  
+  // Note: Since this is executed on the server, headers().get('origin') could be used to construct the URL,
+  // but we can just use the path relative to the site url configured in Supabase.
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/reset-password`,
+  })
+
+  if (error) {
+    redirect('/quen-mat-khau?error=' + encodeURIComponent(error.message))
+  }
+
+  redirect('/quen-mat-khau?message=' + encodeURIComponent('Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn.'))
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient()
+  const password = formData.get('password') as string
+
+  const { error } = await supabase.auth.updateUser({
+    password: password
+  })
+
+  if (error) {
+    redirect('/reset-password?error=' + encodeURIComponent(error.message))
+  }
+
+  redirect('/login?message=' + encodeURIComponent('Đổi mật khẩu thành công. Vui lòng đăng nhập lại.'))
+}

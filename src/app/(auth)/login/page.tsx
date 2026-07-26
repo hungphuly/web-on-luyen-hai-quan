@@ -1,7 +1,4 @@
-import { login } from '../actions'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import LoginForm from './LoginForm'
 import Link from 'next/link'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -13,28 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <h3 className="text-xl font-semibold">Đăng nhập</h3>
           <p className="text-sm text-gray-500">Đăng nhập bằng tài khoản của bạn</p>
         </div>
-        <form action={login} className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="user@example.com" required className="mt-1" />
-          </div>
-          <div>
-            <Label htmlFor="password">Mật khẩu</Label>
-            <Input id="password" name="password" type="password" required className="mt-1" />
-          </div>
-          
-          {params?.error && (
-            <p className="text-sm text-red-600">{params.error}</p>
-          )}
-
-          <Button type="submit">Đăng nhập</Button>
-          <p className="text-center text-sm text-gray-500">
-            Chưa có tài khoản?{' '}
-            <Link href="/register" className="font-semibold text-gray-800 transition-colors hover:text-black">
-              Đăng ký ngay
-            </Link>
-          </p>
-        </form>
+        <LoginForm errorParam={params?.error} />
       </div>
     </div>
   )
