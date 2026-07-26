@@ -7,14 +7,23 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, BookOpen, Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-export function OnLuyenSession({ questions, chuyenDeTen }: { questions: CauHoiPublic[], chuyenDeTen: string }) {
+export function OnLuyenSession({ questions, chuyenDeTen, chuyenDeId }: { questions: CauHoiPublic[], chuyenDeTen: string, chuyenDeId: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [result, setResult] = useState<KetQuaChamDiem | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Khởi tạo phien_id 1 lần duy nhất khi render lần đầu
-  const [phienId] = useState(() => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'fallback-session-id');
+  // Khởi tạo phien_id 1 lần duy nhất
+  const [phienId] = useState(() => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback cho HTTP
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  });
 
   if (questions.length === 0) {
     return (
@@ -38,7 +47,7 @@ export function OnLuyenSession({ questions, chuyenDeTen }: { questions: CauHoiPu
 
     startTransition(async () => {
       try {
-        const res: any = await chamDiemCauHoi(question.id, selectedOption, phienId);
+        const res: any = await chamDiemCauHoi(question.id, selectedOption, phienId, chuyenDeId);
         if (res?.error) {
           alert(res.error);
         } else {

@@ -1,12 +1,49 @@
 'use server'
 
 import { searchContext } from '@/lib/modules/ai-assistant/services/ai.service';
+import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
+
+export async function getAILuotHoiConLai() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  // Lấy loại tài khoản
+  const { data: hocVien } = await supabase
+    .from('hoc_vien')
+    .select('loai_tai_khoan')
+    .eq('id', user.id)
+    .single();
+    
+  if (hocVien?.loai_tai_khoan !== 'free') {
+    return { unlimited: true };
+  }
+
+  // Đếm số lượt hôm nay (dùng admin client vì RLS cản client select)
+  const supabaseAdmin = await createAdminClient();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { count } = await supabaseAdmin
+    .from('ai_luot_hoi')
+    .select('*', { count: 'exact', head: true })
+    .eq('hoc_vien_id', user.id)
+    .gte('thoi_gian', today.toISOString());
+
+  const used = count || 0;
+  return { unlimited: false, limit: 10, used, remaining: Math.max(0, 10 - used) };
+}
 
 export async function hoiTroLyAI(cauHoi: string) {
   const apiKey = process.env.GEMINI_API_KEY;
   
   if (!apiKey) {
     return "Hệ thống chưa được cấu hình API Key cho Trợ lý AI.";
+  }
+
+  const limitInfo = await getAILuotHoiConLai();
+  if (limitInfo && !limitInfo.unlimited && limitInfo.remaining !== undefined && limitInfo.remaining <= 0) {
+    return "Bạn đã dùng hết 10/10 lượt hỏi AI hôm nay. Vui lòng quay lại vào ngày mai!";
   }
 
   try {
@@ -63,7 +100,19 @@ NGUYÊN TẮC BẮT BUỘC:
     const data = await response.json();
     
     if (data.candidates && data.candidates.length > 0) {
-      return data.candidates[0].content.parts[0].text;
+      const responseText = data.candidates[0].content.parts[0].text;
+      
+      // Nếu thành công, insert lịch sử
+      if (limitInfo && !limitInfo.unlimited) {
+        const supabaseAdmin = await createAdminClient();
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabaseAdmin.from('ai_luot_hoi').insert({ hoc_vien_id: user.id });
+        }
+      }
+      
+      return responseText;
     }
     
     return "Xin lỗi, tôi không thể tạo câu trả lời lúc này.";

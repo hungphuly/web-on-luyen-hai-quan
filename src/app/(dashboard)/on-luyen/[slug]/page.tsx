@@ -30,15 +30,9 @@ export default async function OnLuyenDetailPage({ params }: { params: Promise<{ 
           <h1 className="text-xl font-bold text-gray-900">{chuyenDe.ten}</h1>
           <p className="text-sm text-gray-500">Chế độ: Ôn luyện tự do</p>
         </div>
-        <Link 
-          href={`/on-luyen/${chuyenDe.slug}/thi-thu`}
-          className="inline-flex items-center justify-center px-4 py-2 bg-rose-50 text-rose-600 font-bold border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors"
-        >
-          Thi thử ngay
-        </Link>
       </div>
 
-      <OnLuyenSession questions={questions} chuyenDeTen={chuyenDe.ten} />
+      <OnLuyenSession questions={questions} chuyenDeTen={chuyenDe.ten} chuyenDeId={chuyenDe.id} />
     </div>
   );
 }

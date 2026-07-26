@@ -10,22 +10,6 @@ export default async function LichSuPage() {
   const lichSuOnLuyen = await getLichSuOnLuyen();
   const lichSuThiThu = await getLichSuThiThu();
 
-  // Gom nhóm ôn luyện theo phien_id
-  const groupedOnLuyen: Record<string, any[]> = {};
-  lichSuOnLuyen.forEach((ls: any) => {
-    const phienId = ls.phien_id || 'phien-cu';
-    if (!groupedOnLuyen[phienId]) {
-      groupedOnLuyen[phienId] = [];
-    }
-    groupedOnLuyen[phienId].push(ls);
-  });
-
-  const phienOnLuyenKeys = Object.keys(groupedOnLuyen).sort((a, b) => {
-    const timeA = new Date(groupedOnLuyen[a][0].ngay_lam).getTime();
-    const timeB = new Date(groupedOnLuyen[b][0].ngay_lam).getTime();
-    return timeB - timeA;
-  });
-
   // Gom nhóm thi thử theo id
   const groupedThiThu: Record<string, any> = {};
   lichSuThiThu.forEach((ls: any) => {
@@ -46,9 +30,8 @@ export default async function LichSuPage() {
       </div>
 
       <LichSuTabs 
-        groupedOnLuyen={groupedOnLuyen} 
+        lichSuOnLuyen={lichSuOnLuyen} 
         groupedThiThu={groupedThiThu}
-        phienOnLuyenKeys={phienOnLuyenKeys}
         thiThuKeys={thiThuKeys}
       />
     </div>

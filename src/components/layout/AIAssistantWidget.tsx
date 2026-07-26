@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Loader2, Bot, User } from 'lucide-react';
-import { hoiTroLyAI } from '@/app/(dashboard)/actions/ai.actions';
+import { MessageCircle, X, Send, Loader2, Bot, User, AlertCircle } from 'lucide-react';
+import { hoiTroLyAI, getAILuotHoiConLai } from '@/app/(dashboard)/actions/ai.actions';
 import ReactMarkdown from 'react-markdown';
 
 type Message = {
@@ -17,6 +17,7 @@ export function AIAssistantWidget() {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{ unlimited: boolean, limit?: number, used?: number, remaining?: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -26,6 +27,14 @@ export function AIAssistantWidget() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    if (isOpen && !limitInfo) {
+      getAILuotHoiConLai().then(info => {
+        if (info) setLimitInfo(info);
+      });
+    }
+  }, [isOpen, limitInfo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +48,21 @@ export function AIAssistantWidget() {
     try {
       const reply = await hoiTroLyAI(userMessage);
       setMessages(prev => [...prev, { role: 'ai', content: reply }]);
+      
+      // Update limit info after answering
+      if (limitInfo && !limitInfo.unlimited) {
+        getAILuotHoiConLai().then(info => {
+          if (info) setLimitInfo(info);
+        });
+      }
     } catch (error) {
       setMessages(prev => [...prev, { role: 'ai', content: 'Xin lỗi, đã xảy ra lỗi trong quá trình xử lý.' }]);
     } finally {
       setIsTyping(false);
     }
   };
+
+  const isLimitReached = limitInfo && !limitInfo.unlimited && limitInfo.remaining !== undefined && limitInfo.remaining <= 0;
 
   return (
     <>
@@ -63,22 +81,30 @@ export function AIAssistantWidget() {
       {isOpen && (
         <div className="fixed bottom-6 right-6 w-[350px] sm:w-[400px] h-[500px] max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden animate-in slide-in-from-bottom-5">
           {/* Header */}
-          <div className="bg-primary text-white p-4 flex items-center justify-between shadow-sm z-10">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-white/20 rounded-lg">
-                <Bot className="w-5 h-5" />
+          <div className="bg-primary text-white p-4 flex flex-col shadow-sm z-10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-white/20 rounded-lg">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Trợ lý AI Hải Quan</h3>
+                  <p className="text-[10px] text-white/80">Trả lời dựa trên tài liệu hệ thống</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-sm">Trợ lý AI Hải Quan</h3>
-                <p className="text-[10px] text-white/80">Trả lời dựa trên tài liệu hệ thống</p>
-              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            
+            {limitInfo && !limitInfo.unlimited && (
+              <div className="mt-3 text-xs bg-black/20 rounded px-2 py-1 flex items-center justify-between">
+                <span>Còn {limitInfo.remaining}/{limitInfo.limit} lượt hỏi hôm nay</span>
+              </div>
+            )}
           </div>
 
           {/* Body chat */}
@@ -125,22 +151,30 @@ export function AIAssistantWidget() {
 
           {/* Input area */}
           <div className="p-3 bg-white border-t z-10">
-            <form onSubmit={handleSubmit} className="flex gap-2 relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Hỏi về mã HS, thủ tục..."
-                className="flex-1 bg-gray-100 border-transparent focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary rounded-full px-4 py-2.5 text-sm outline-none transition-all pr-12"
-                disabled={isTyping}
-              />
-              <button 
-                type="submit"
-                disabled={!input.trim() || isTyping}
-                className="absolute right-1 top-1 bottom-1 w-9 flex items-center justify-center bg-primary text-white rounded-full disabled:opacity-50 disabled:bg-gray-400 transition-colors"
-              >
-                <Send className="w-4 h-4 ml-0.5" />
-              </button>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2 relative">
+              {isLimitReached && (
+                <div className="text-xs text-red-600 flex items-center gap-1 px-1">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Đã hết lượt hỏi hôm nay. Vui lòng quay lại vào ngày mai!</span>
+                </div>
+              )}
+              <div className="flex gap-2 relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={isLimitReached ? "Đã hết lượt hỏi hôm nay" : "Hỏi về mã HS, thủ tục..."}
+                  className="flex-1 bg-gray-100 border-transparent focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary rounded-full px-4 py-2.5 text-sm outline-none transition-all pr-12 disabled:opacity-50"
+                  disabled={isTyping || isLimitReached}
+                />
+                <button 
+                  type="submit"
+                  disabled={!input.trim() || isTyping || isLimitReached}
+                  className="absolute right-1 top-1 bottom-1 w-9 flex items-center justify-center bg-primary text-white rounded-full disabled:opacity-50 disabled:bg-gray-400 transition-colors"
+                >
+                  <Send className="w-4 h-4 ml-0.5" />
+                </button>
+              </div>
             </form>
           </div>
         </div>

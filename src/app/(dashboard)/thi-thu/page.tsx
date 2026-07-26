@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getDanhSachChuyenDeCoCauHoi } from '@/lib/modules/on-luyen/services/on-luyen.service';
-import { BookOpen, Target } from 'lucide-react';
+import { BookOpen, Target, AlertTriangle } from 'lucide-react';
+import { createClient } from '@/lib/shared/utils/supabase/server';
 
 export const metadata = {
   title: 'Thi thử - Ôn Luyện Hải Quan',
@@ -8,12 +9,54 @@ export const metadata = {
 
 export default async function ThiThuListPage() {
   const chuyenDeList = await getDanhSachChuyenDeCoCauHoi();
+  
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  let limitInfo = { remaining: 2, limit: 2, unlimited: true };
+  if (user) {
+    const { data: hocVien } = await supabase
+      .from('hoc_vien')
+      .select('loai_tai_khoan')
+      .eq('id', user.id)
+      .single();
+
+    if (hocVien?.loai_tai_khoan === 'free') {
+      limitInfo.unlimited = false;
+      // Lấy thời điểm bắt đầu ngày hôm nay theo giờ Việt Nam (UTC+7)
+      const now = new Date();
+      const nowUtc = now.getTime() + now.getTimezoneOffset() * 60000;
+      const vnTime = new Date(nowUtc + 7 * 3600000);
+      const startOfDayVNInUTC = new Date(Date.UTC(vnTime.getFullYear(), vnTime.getMonth(), vnTime.getDate(), -7, 0, 0, 0));
+      
+      const { count } = await supabase
+        .from('ket_qua_thi')
+        .select('*', { count: 'exact', head: true })
+        .eq('hoc_vien_id', user.id)
+        .eq('loai_bai', 'thi_thu')
+        .gte('ngay_thi', startOfDayVNInUTC.toISOString());
+        
+      const used = count || 0;
+      limitInfo.remaining = Math.max(0, 2 - used);
+    }
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4 lg:p-8 space-y-12">
       <div>
         <h1 className="text-3xl font-sans font-bold text-primary tracking-tight">Thi thử</h1>
-        <p className="text-sm text-muted-foreground mt-2 mb-8">Lựa chọn chuyên đề để bắt đầu bài thi thử tính giờ.</p>
+        <p className="text-sm text-muted-foreground mt-2 mb-4">Lựa chọn chuyên đề để bắt đầu bài thi thử tính giờ.</p>
+        
+        {!limitInfo.unlimited && (
+          <div className={`p-4 rounded-lg border ${limitInfo.remaining > 0 ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'} mb-8 flex items-center gap-2`}>
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <span className="font-medium">
+              {limitInfo.remaining > 0 
+                ? `Tài khoản miễn phí: Bạn còn ${limitInfo.remaining}/${limitInfo.limit} lượt thi thử trong ngày hôm nay.` 
+                : `Tài khoản miễn phí: Bạn đã hết lượt thi thử hôm nay. Vui lòng quay lại vào ngày mai.`}
+            </span>
+          </div>
+        )}
       </div>
 
       {chuyenDeList.length === 0 ? (

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/shared/utils/supabase/server';
-import { CauHoiPublic, LichSuOnLuyen } from '../types';
+import { CauHoiPublic, PhienOnLuyen } from '../types';
 import { DanhMucChuyenDe } from '@/lib/modules/bai-giang/types';
 
 export async function getDanhSachChuyenDeCoCauHoi(): Promise<(DanhMucChuyenDe & { cau_hoi_count: number })[]> {
@@ -39,20 +39,17 @@ export async function getDanhSachCauHoiPublic(chuyenDeId: string): Promise<CauHo
   return (data || []).sort(() => Math.random() - 0.5).slice(0, 20) as CauHoiPublic[];
 }
 
-export async function getLichSuOnLuyen(): Promise<LichSuOnLuyen[]> {
+export async function getLichSuOnLuyen(): Promise<PhienOnLuyen[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return [];
 
   const { data, error } = await supabase
-    .from('lich_su_on_luyen')
+    .from('phien_on_luyen')
     .select(`
       *,
-      cau_hoi (
-        noi_dung,
-        chuyen_de:danh_muc_chuyen_de (ten)
-      )
+      chuyen_de:danh_muc_chuyen_de (ten)
     `)
     .eq('hoc_vien_id', user.id)
     .order('ngay_lam', { ascending: false });
@@ -62,5 +59,5 @@ export async function getLichSuOnLuyen(): Promise<LichSuOnLuyen[]> {
     return [];
   }
 
-  return data as unknown as LichSuOnLuyen[];
+  return data as unknown as PhienOnLuyen[];
 }

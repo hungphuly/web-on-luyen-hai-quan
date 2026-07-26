@@ -24,15 +24,62 @@ export default async function ThiThuPage({ params }: { params: Promise<{ slug: s
 
   const chuyenDe = chuyenDeList?.[0];
   
+  // Kiểm tra giới hạn thi thử (2 lần/ngày) cho tài khoản Free
+  let limitExceeded = false;
+  let limitInfo = { remaining: 2, limit: 2, unlimited: true };
+  
+  const { data: hocVien } = await supabase
+    .from('hoc_vien')
+    .select('loai_tai_khoan')
+    .eq('id', user.id)
+    .single();
+
+  if (hocVien?.loai_tai_khoan === 'free') {
+    limitInfo.unlimited = false;
+    
+    // Lấy thời điểm bắt đầu ngày hôm nay theo giờ Việt Nam (UTC+7)
+    const now = new Date();
+    const nowUtc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const vnTime = new Date(nowUtc + 7 * 3600000);
+    const startOfDayVNInUTC = new Date(Date.UTC(vnTime.getFullYear(), vnTime.getMonth(), vnTime.getDate(), -7, 0, 0, 0));
+    
+    const { count } = await supabase
+      .from('ket_qua_thi')
+      .select('*', { count: 'exact', head: true })
+      .eq('hoc_vien_id', user.id)
+      .eq('loai_bai', 'thi_thu')
+      .gte('ngay_thi', startOfDayVNInUTC.toISOString());
+      
+    const used = count || 0;
+    limitInfo.remaining = Math.max(0, 2 - used);
+    
+    if (limitInfo.remaining <= 0) {
+      limitExceeded = true;
+    }
+  }
+  
   if (!chuyenDe) {
     notFound();
+  }
+
+  if (limitExceeded) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 lg:p-8">
+        <div className="bg-white rounded-xl border p-6 md:p-10 text-center space-y-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-red-600">Hết lượt thi thử</h1>
+          <p className="text-gray-700 text-lg">Bạn đã dùng hết lượt thi thử hôm nay (2/2). Quay lại vào ngày mai.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4 lg:p-8">
       <ThiThuClientWrapper 
         chuyenDeId={chuyenDe.id} 
-        chuyenDeTen={chuyenDe.ten} 
+        chuyenDeTen={chuyenDe.ten}
+        chuyenDeSlug={chuyenDe.slug}
+        limitInfo={limitInfo}
       />
     </div>
   );

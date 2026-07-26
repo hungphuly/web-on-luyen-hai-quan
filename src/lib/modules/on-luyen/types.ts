@@ -16,17 +16,14 @@ export interface KetQuaChamDiem {
   can_cu_phap_ly: string;
 }
 
-export interface LichSuOnLuyen {
+export interface PhienOnLuyen {
   id: string;
   hoc_vien_id: string;
-  cau_hoi_id: string;
-  lua_chon_da_chon: string;
-  dung: boolean;
+  chuyen_de_id: string;
+  so_cau_da_lam: number;
+  so_cau_dung: number;
   ngay_lam: string;
-  cau_hoi?: {
-    noi_dung: string;
-    chuyen_de?: {
-      ten: string;
-    }
-  };
+  chuyen_de?: {
+    ten: string;
+  }
 }
