@@ -6,8 +6,10 @@ import { usePathname } from 'next/navigation'
 import { MENU_CONFIG } from '@/config/menu.config'
 import { cn } from '@/lib/utils'
 import * as Icons from 'lucide-react'
+import { signout } from '@/app/(auth)/actions'
+import { Button } from '@/components/ui/button'
 
-export function Sidebar({ userRole }: { userRole?: string }) {
+export function Sidebar({ userRole, userEmail, userFullName }: { userRole?: string, userEmail?: string, userFullName?: string }) {
   const pathname = usePathname()
   
   // Khởi tạo state cho các nhóm đang mở (accordion)
@@ -47,7 +49,7 @@ export function Sidebar({ userRole }: { userRole?: string }) {
             </span>
           </Link>
         </div>
-        <div className="flex-1 overflow-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 min-h-0">
           <nav className="grid items-start px-4 text-sm font-medium gap-4">
             {MENU_CONFIG.map((group, groupIndex) => {
               // Ẩn nhóm Quản trị nếu không phải admin
@@ -128,6 +130,27 @@ export function Sidebar({ userRole }: { userRole?: string }) {
             })}
           </nav>
         </div>
+        
+        {/* User Info and Logout */}
+        {userEmail && (
+          <div className="mt-auto border-t p-4 flex flex-col gap-3 shrink-0">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                {userFullName ? userFullName.charAt(0).toUpperCase() : userEmail.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-semibold truncate" title={userFullName || ''}>{userFullName || 'Học viên'}</span>
+                <span className="text-xs text-muted-foreground truncate" title={userEmail}>{userEmail}</span>
+              </div>
+            </div>
+            <form action={signout} className="w-full">
+              <Button variant="outline" size="sm" type="submit" className="w-full flex items-center justify-start gap-2 text-muted-foreground hover:text-foreground">
+                <Icons.LogOut className="h-4 w-4" />
+                Đăng xuất
+              </Button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   )
