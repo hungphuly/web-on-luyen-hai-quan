@@ -86,6 +86,7 @@ export function ThiThuClientWrapper({
         onFinish={(kq) => {
           setKetQua(kq);
           setStep('result');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }} 
       />
     );

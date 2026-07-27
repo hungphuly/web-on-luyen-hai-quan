@@ -72,18 +72,27 @@ export function ThiThuSession({ deThi, chuyenDeTen, onFinish }: { deThi: DeThi, 
   };
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-[60px] md:top-[76px] z-20 bg-white/80 backdrop-blur-md border-b -mx-4 md:-mx-8 px-4 md:px-8 py-3 flex items-center justify-between shadow-sm">
-        <div className="font-bold text-gray-800 hidden md:block">Thi thử: {chuyenDeTen}</div>
-        <div className={cn(
-          "flex items-center gap-2 font-mono text-xl font-bold px-4 py-1.5 rounded-full",
-          timeLeft <= 300 ? "bg-red-100 text-red-600 animate-pulse" : "bg-blue-50 text-blue-700"
-        )}>
-          <Clock className="w-5 h-5" />
-          {formatTime(timeLeft)}
+    <div className="space-y-6 pt-20">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b px-4 md:px-8 py-3 flex items-center justify-between shadow-sm">
+        <div className="font-bold text-gray-800 hidden md:block truncate max-w-xs xl:max-w-md">Thi thử: {chuyenDeTen}</div>
+        
+        <div className="flex items-center gap-3 md:gap-6 flex-1 md:flex-none justify-start md:justify-center">
+          <div className="text-sm font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
+            <span className="hidden md:inline">Đã làm: </span>
+            <span className="text-primary">{Object.keys(answers).length}</span>/{deThi.cauHoi.length}
+          </div>
+          
+          <div className={cn(
+            "flex items-center gap-2 font-mono text-xl font-bold px-4 py-1.5 rounded-full ml-auto md:ml-0",
+            timeLeft <= 300 ? "bg-red-100 text-red-600 animate-pulse" : "bg-blue-50 text-blue-700"
+          )}>
+            <Clock className="w-5 h-5" />
+            {formatTime(timeLeft)}
+          </div>
         </div>
-        <Button onClick={handleSubmit} disabled={isPending} className="rounded-full shadow-md font-bold">
-          {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+
+        <Button onClick={handleSubmit} disabled={isPending} className="rounded-full shadow-md font-bold shrink-0 ml-4">
+          {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2 hidden sm:block" />}
           Nộp bài
         </Button>
       </div>
