@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/shared/utils/supabase/server';
+import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
 import { CauHoiPublic, PhienOnLuyen } from '../types';
 import { DanhMucChuyenDe } from '@/lib/modules/bai-giang/types';
 
 export async function getDanhSachChuyenDeCoCauHoi(): Promise<(DanhMucChuyenDe & { cau_hoi_count: number })[]> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('danh_muc_chuyen_de')
     .select(`
