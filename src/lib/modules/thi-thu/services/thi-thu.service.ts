@@ -12,10 +12,10 @@ export async function taoDeThi(chuyenDeId: string): Promise<DeThi | null> {
     .from('cau_hoi_public')
     .select('id, noi_dung, cac_lua_chon')
     .eq('chuyen_de_id', chuyenDeId)
-    .in('phan_loai', [2, 3]);
+    .in('phan_loai', [1, 2, 3]);
 
-  if (error || !data) {
-    console.error('Lỗi khi lấy câu hỏi tạo đề thi:', error);
+  if (error || !data || data.length === 0) {
+    console.error('Lỗi khi lấy câu hỏi tạo đề thi, hoặc không có câu hỏi Thi thử:', error);
     return null;
   }
 

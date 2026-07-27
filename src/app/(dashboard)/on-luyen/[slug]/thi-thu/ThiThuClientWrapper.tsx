@@ -29,11 +29,11 @@ export function ThiThuClientWrapper({
     startTransition(async () => {
       try {
         const data = await batDauThiThu(chuyenDeId);
-        if (data) {
+        if (data && data.cauHoi.length > 0) {
           setDeThi(data);
           setStep('testing');
         } else {
-          alert('Không thể tạo đề thi lúc này. Có thể chưa có câu hỏi nào.');
+          alert('Không thể tạo đề thi lúc này. Có thể chuyên đề này chưa có câu hỏi nào trong ngân hàng đề.');
         }
       } catch (error) {
         alert('Lỗi tạo đề thi.');
