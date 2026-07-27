@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/shared/utils/supabase/server';
+import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
 
 export async function getPublicStats() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // Chạy các query đếm song song để tối ưu hiệu suất
   const [
