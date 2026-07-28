@@ -2,7 +2,7 @@
 
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { r2Client, R2_BUCKET_NAME } from '@/lib/shared/utils/r2';
+import { getR2Client, getR2BucketName } from '@/lib/shared/utils/r2';
 import { createClient } from '@/lib/shared/utils/supabase/server';
 
 export async function layTamThoiLinkXemFile(fileKey: string): Promise<string> {
@@ -15,12 +15,12 @@ export async function layTamThoiLinkXemFile(fileKey: string): Promise<string> {
   // Since some documents might be public, we can just return the url. But generating presigned url is safe since it expires.
 
   const command = new GetObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: getR2BucketName(),
     Key: fileKey,
   });
 
   // Tạo URL tạm thời sống trong 10 phút (600 giây)
-  const signedUrl = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+  const signedUrl = await getSignedUrl(getR2Client(), command, { expiresIn: 600 });
   
   return signedUrl;
 }
