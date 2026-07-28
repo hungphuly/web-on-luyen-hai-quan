@@ -1,23 +1,31 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
   console.warn('Thiếu cấu hình R2. Vui lòng thêm R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY vào file .env.local');
 }
 
-export function getR2Client() {
+export async function getR2Client() {
   // Gán process.env ra một biến để tránh Webpack statically replace thành undefined lúc build
   const env = process.env;
+  
+  let ctx: any = null;
+  try {
+    ctx = await getCloudflareContext({ async: true });
+  } catch (e) {
+    console.error('Không thể lấy Cloudflare Context:', e);
+  }
+
+  console.log('DEBUG R2 ENV v2:', {
+    viaProcessEnv_bucket: env.R2_BUCKET_NAME,
+    viaCloudflareContext_bucket: ctx?.env?.R2_BUCKET_NAME,
+    nodejsCompatEnabled: typeof process !== 'undefined',
+  });
+
   const accountId = env['R2_ACCOUNT_ID'];
   const accessKey = env['R2_ACCESS_KEY_ID'];
   const secretKey = env['R2_SECRET_ACCESS_KEY'];
   const bucketName = env['R2_BUCKET_NAME'];
-
-  console.log('DEBUG R2 ENV:', {
-    hasAccountId: !!process.env.R2_ACCOUNT_ID,
-    hasAccessKey: !!process.env.R2_ACCESS_KEY_ID,
-    hasSecretKey: !!process.env.R2_SECRET_ACCESS_KEY,
-    hasBucketName: !!process.env.R2_BUCKET_NAME,
-  });
 
   if (!accountId || !accessKey || !secretKey) {
     throw new Error('THIẾU BIẾN MÔI TRƯỜNG TRÊN CLOUDFLARE: Vui lòng kiểm tra lại Settings -> Environment variables trên Cloudflare Pages. Bạn cần khai báo đủ R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.');
@@ -53,6 +61,7 @@ export async function uploadToR2(fileBuffer: Uint8Array | Buffer, fileName: stri
     ContentType: contentType,
   });
 
-  await getR2Client().send(command);
+  const client = await getR2Client();
+  await client.send(command);
   return fileName;
 }
