@@ -8,7 +8,7 @@ export async function uploadVanBanPhapLuat(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    throw new Error("Không có quyền truy cập");
+    return { error: "Không có quyền truy cập" };
   }
 
   const file = formData.get('file') as File;
@@ -19,11 +19,11 @@ export async function uploadVanBanPhapLuat(formData: FormData) {
   const trang_thai = formData.get('trang_thai') as string;
 
   if (!ten_van_ban || !file) {
-    throw new Error('Vui lòng nhập tên văn bản và chọn file');
+    return { error: 'Vui lòng nhập tên văn bản và chọn file' };
   }
 
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-    throw new Error('Chỉ hỗ trợ file định dạng PDF. Vui lòng chuyển đổi file sang PDF trước khi tải lên.');
+    return { error: 'Chỉ hỗ trợ file định dạng PDF. Vui lòng chuyển đổi file sang PDF trước khi tải lên.' };
   }
 
   // Generate unique filename and upload to R2
@@ -50,13 +50,13 @@ export async function uploadVanBanPhapLuat(formData: FormData) {
       });
 
     if (insertError) {
-      throw new Error('Lỗi lưu thông tin văn bản: ' + insertError.message);
+      return { error: 'Lỗi lưu thông tin văn bản: ' + insertError.message };
     }
 
     return { success: true };
   } catch (error: any) {
     console.error('Upload R2 lỗi:', error);
-    throw new Error('Lỗi upload file: ' + error.message);
+    return { error: 'Lỗi upload file: ' + error.message };
   }
 }
 

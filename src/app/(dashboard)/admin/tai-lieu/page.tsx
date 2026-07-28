@@ -16,9 +16,13 @@ export default function AdminTaiLieuPage() {
 
     startTransition(async () => {
       try {
-        await uploadVanBanPhapLuat(formData);
-        setResult({ success: 'Đã tải lên văn bản thành công!' });
-        (e.target as HTMLFormElement).reset();
+        const res = await uploadVanBanPhapLuat(formData);
+        if (res?.error) {
+          setResult({ error: res.error });
+        } else {
+          setResult({ success: 'Đã tải lên văn bản thành công!' });
+          (e.target as HTMLFormElement).reset();
+        }
       } catch (error: any) {
         setResult({ error: error.message || 'Lỗi khi tải lên' });
       }
