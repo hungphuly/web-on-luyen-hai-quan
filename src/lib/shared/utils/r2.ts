@@ -5,10 +5,12 @@ if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.
 }
 
 export function getR2Client() {
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKey = process.env.R2_ACCESS_KEY_ID;
-  const secretKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucketName = process.env.R2_BUCKET_NAME;
+  // Gán process.env ra một biến để tránh Webpack statically replace thành undefined lúc build
+  const env = process.env;
+  const accountId = env['R2_ACCOUNT_ID'];
+  const accessKey = env['R2_ACCESS_KEY_ID'];
+  const secretKey = env['R2_SECRET_ACCESS_KEY'];
+  const bucketName = env['R2_BUCKET_NAME'];
 
   console.log('[DEBUG R2 ENV]', {
     accountId: typeof accountId,
@@ -32,7 +34,8 @@ export function getR2Client() {
 }
 
 export function getR2BucketName() {
-  return process.env.R2_BUCKET_NAME || 'tai-lieu-hoc-tap';
+  const env = process.env;
+  return env['R2_BUCKET_NAME'] || 'tai-lieu-hoc-tap';
 }
 
 /**
