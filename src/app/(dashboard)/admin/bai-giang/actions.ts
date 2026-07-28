@@ -95,7 +95,7 @@ export async function createLyThuyet(formData: FormData) {
     const fileName = `bai-giang/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     try {
       const arrayBuffer = await file_dinh_kem.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = new Uint8Array(arrayBuffer);
       await uploadToR2(buffer, fileName, file_dinh_kem.type);
       file_dinh_kem_url = fileName;
     } catch (err: any) {
@@ -138,7 +138,7 @@ export async function updateLyThuyet(id: string, formData: FormData) {
     const fileName = `bai-giang/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     try {
       const arrayBuffer = await file_dinh_kem.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = new Uint8Array(arrayBuffer);
       await uploadToR2(buffer, fileName, file_dinh_kem.type);
       updateData.file_dinh_kem_url = fileName;
     } catch (err: any) {

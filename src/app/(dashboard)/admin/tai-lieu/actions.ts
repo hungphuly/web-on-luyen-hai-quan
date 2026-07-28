@@ -32,7 +32,7 @@ export async function uploadVanBanPhapLuat(formData: FormData) {
   
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const buffer = new Uint8Array(arrayBuffer);
     
     // Đẩy lên R2, hàm trả về tên file (KEY)
     await uploadToR2(buffer, fileName, file.type);

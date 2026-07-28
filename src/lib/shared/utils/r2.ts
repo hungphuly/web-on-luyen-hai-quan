@@ -21,12 +21,12 @@ export function getR2BucketName() {
 
 /**
  * Upload một file (dạng Buffer) lên Cloudflare R2
- * @param fileBuffer Buffer của file cần upload
+ * @param fileBuffer Buffer hoặc Uint8Array của file cần upload
  * @param fileName Tên file (VD: 'van-ban/file.pdf')
  * @param contentType Kiểu nội dung (VD: 'application/pdf')
  * @returns fileKey (đường dẫn lưu trong DB)
  */
-export async function uploadToR2(fileBuffer: Buffer, fileName: string, contentType: string = 'application/pdf'): Promise<string> {
+export async function uploadToR2(fileBuffer: Uint8Array | ArrayBuffer | Buffer, fileName: string, contentType: string = 'application/pdf'): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: getR2BucketName(),
     Key: fileName,
