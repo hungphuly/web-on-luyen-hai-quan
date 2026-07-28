@@ -20,7 +20,8 @@ export async function layTamThoiLinkXemFile(fileKey: string): Promise<string> {
   });
 
   // Tạo URL tạm thời sống trong 10 phút (600 giây)
-  const signedUrl = await getSignedUrl(getR2Client(), command, { expiresIn: 600 });
+  const client = await getR2Client();
+  const signedUrl = await getSignedUrl(client, command, { expiresIn: 600 });
   
   return signedUrl;
 }
