@@ -12,11 +12,11 @@ export function getR2Client() {
   const secretKey = env['R2_SECRET_ACCESS_KEY'];
   const bucketName = env['R2_BUCKET_NAME'];
 
-  console.log('[DEBUG R2 ENV]', {
-    accountId: typeof accountId,
-    accessKey: typeof accessKey,
-    secretKey: typeof secretKey,
-    bucketName: typeof bucketName,
+  console.log('DEBUG R2 ENV:', {
+    hasAccountId: !!process.env.R2_ACCOUNT_ID,
+    hasAccessKey: !!process.env.R2_ACCESS_KEY_ID,
+    hasSecretKey: !!process.env.R2_SECRET_ACCESS_KEY,
+    hasBucketName: !!process.env.R2_BUCKET_NAME,
   });
 
   if (!accountId || !accessKey || !secretKey) {
