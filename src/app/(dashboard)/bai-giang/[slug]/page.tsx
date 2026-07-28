@@ -5,7 +5,8 @@ import { getDanhSachLyThuyet, getTienDoList } from '@/lib/modules/bai-giang/serv
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CompleteButton } from './CompleteButton';
-import { Lock, CheckCircle2 } from 'lucide-react';
+import { Lock, CheckCircle2, FileText } from 'lucide-react';
+import { PdfViewerModal } from '@/components/shared/PdfViewerModal';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -132,6 +133,12 @@ export default async function ChuyenDeDetailPage({ params }: { params: Promise<{
                             {item.noi_dung_markdown}
                           </ReactMarkdown>
                         </article>
+
+                        {(item as any).file_dinh_kem_url && (
+                          <div className="mt-8">
+                            <PdfViewerModal fileKey={(item as any).file_dinh_kem_url} />
+                          </div>
+                        )}
                         
                         <div className="mt-10 pt-6 border-t flex justify-end">
                           {isCompleted ? (

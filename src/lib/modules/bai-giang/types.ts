@@ -28,6 +28,7 @@ export interface BaiGiangLyThuyet {
   chuyen_de_id: string;
   thu_tu: number;
   hinh_anh_url: string | null;
+  file_dinh_kem_url?: string | null;
   created_at: string;
 }
 

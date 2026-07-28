@@ -248,6 +248,27 @@ export function BaiGiangClient({
                     <Input id="hinh_anh_url" name="hinh_anh_url" defaultValue={editingLyThuyet?.hinh_anh_url || ''} />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="file_dinh_kem">Tài liệu đính kèm (chỉ nhận PDF)</Label>
+                    <Input 
+                      id="file_dinh_kem" 
+                      name="file_dinh_kem" 
+                      type="file" 
+                      accept=".pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                          alert('Vui lòng chuyển sang PDF trước khi upload!');
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    {(editingLyThuyet as any)?.file_dinh_kem_url && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        * Bài giảng này đã có file đính kèm. Upload file mới sẽ ghi đè file cũ.
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="noi_dung_markdown">Nội dung (Markdown)</Label>
                     <textarea 
                       id="noi_dung_markdown" 
