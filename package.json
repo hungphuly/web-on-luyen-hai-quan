@@ -14,6 +14,9 @@
     "@aws-sdk/s3-request-presigner": "^3.1096.0",
     "@base-ui/react": "^1.6.0",
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
+    "@emnapi/wasi-threads": "^1.2.3",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
     "@tailwindcss/typography": "^0.5.20",
@@ -43,10 +46,5 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.114.0"
-  },
-  "optionalDependencies": {
-    "@emnapi/core": "1.11.3",
-    "@emnapi/runtime": "1.11.3",
-    "@emnapi/wasi-threads": "^1.2.3"
   }
 }
