@@ -8,6 +8,14 @@ export function getR2Client() {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKey = process.env.R2_ACCESS_KEY_ID;
   const secretKey = process.env.R2_SECRET_ACCESS_KEY;
+  const bucketName = process.env.R2_BUCKET_NAME;
+
+  console.log('[DEBUG R2 ENV]', {
+    accountId: typeof accountId,
+    accessKey: typeof accessKey,
+    secretKey: typeof secretKey,
+    bucketName: typeof bucketName,
+  });
 
   if (!accountId || !accessKey || !secretKey) {
     throw new Error('THIẾU BIẾN MÔI TRƯỜNG TRÊN CLOUDFLARE: Vui lòng kiểm tra lại Settings -> Environment variables trên Cloudflare Pages. Bạn cần khai báo đủ R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.');
