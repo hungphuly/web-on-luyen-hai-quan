@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/shared/utils/supabase/server';
-import { BaiGiangVideo } from '../types';
+import { BaiGiangVideo, VideoTienDo } from '../types';
 
 export async function getDanhSachVideo(chuyenDeId?: string): Promise<BaiGiangVideo[]> {
   const supabase = await createClient();
@@ -16,5 +16,22 @@ export async function getDanhSachVideo(chuyenDeId?: string): Promise<BaiGiangVid
     return [];
   }
 
+  return data || [];
+}
+
+export async function getVideoTienDoList(): Promise<VideoTienDo[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('video_tien_do')
+    .select('*')
+    .eq('hoc_vien_id', user.id);
+
+  if (error) {
+    console.error('Lỗi khi lấy tiến độ video:', error);
+    return [];
+  }
   return data || [];
 }

@@ -62,6 +62,36 @@ export default async function ThiThuPage({ params }: { params: Promise<{ slug: s
     notFound();
   }
 
+  // --- GATE LOGIC: Kiểm tra hoàn thành tiến độ học liệu ---
+  // 1. Lấy danh sách video và lý thuyết
+  const { data: videos } = await supabase.from('bai_giang_video').select('id').eq('chuyen_de_id', chuyenDe.id);
+  const { data: lyThuyets } = await supabase.from('bai_giang_ly_thuyet').select('id').eq('chuyen_de_id', chuyenDe.id);
+  
+  // 2. Lấy tiến độ của học viên
+  const { data: tienDoVideo } = await supabase.from('video_tien_do').select('bai_giang_video_id, da_hoan_thanh').eq('hoc_vien_id', user.id);
+  const { data: tienDoLyThuyet } = await supabase.from('tien_do_hoc_lieu').select('bai_ly_thuyet_id, da_hoan_thanh').eq('hoc_vien_id', user.id);
+  
+  // 3. Kiểm tra xem tất cả các mục đã hoàn thành chưa
+  const hasUnfinishedVideo = (videos || []).some(v => !tienDoVideo?.find(td => td.bai_giang_video_id === v.id)?.da_hoan_thanh);
+  const hasUnfinishedLyThuyet = (lyThuyets || []).some(l => !tienDoLyThuyet?.find(td => td.bai_ly_thuyet_id === l.id)?.da_hoan_thanh);
+
+  if (hasUnfinishedVideo || hasUnfinishedLyThuyet) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 lg:p-8">
+        <div className="bg-white rounded-xl border p-6 md:p-10 text-center space-y-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-primary">Chưa đủ điều kiện</h1>
+          <p className="text-gray-700 text-lg">Bạn phải hoàn thành toàn bộ bài giảng (video và lý thuyết) của chuyên đề này trước khi thi thử.</p>
+          <div className="pt-4">
+            <a href={`/bai-giang/${chuyenDe.slug}`} className="inline-block px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors">
+              Quay lại học bài giảng
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // --- END GATE LOGIC ---
+
   if (limitExceeded) {
     return (
       <div className="max-w-4xl mx-auto p-4 lg:p-8">
