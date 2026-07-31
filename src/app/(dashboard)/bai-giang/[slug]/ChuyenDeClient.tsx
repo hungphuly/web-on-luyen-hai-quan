@@ -76,9 +76,9 @@ export function ChuyenDeClient({ chuyenDe, items, tienDoLyThuyet, tienDoVideo }:
       </div>
 
       {/* CỘT TRÁI - MAIN CONTENT */}
-      <div className="flex-1 p-4 lg:p-8 lg:overflow-y-auto">
+      <div className="flex-1 p-0 lg:p-6 lg:overflow-y-auto">
         {activeItem ? (
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="w-full max-w-[1600px] mx-auto space-y-6 lg:border lg:rounded-2xl lg:bg-white lg:shadow-sm lg:p-6">
             <div className="mb-6">
               <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">{activeItem.tieu_de}</h1>
               {activeItem.type === 'ly_thuyet' && activeItem.hinh_anh_url && (
@@ -96,7 +96,7 @@ export function ChuyenDeClient({ chuyenDe, items, tienDoLyThuyet, tienDoVideo }:
                 <p className="text-gray-500">Vui lòng hoàn thành các bài học trước đó để mở khóa nội dung này.</p>
               </div>
             ) : (
-              <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-white rounded-2xl overflow-hidden">
                 {activeItem.type === 'video' ? (
                   <div className="flex flex-col">
                     <YoutubePlayerClient 
@@ -120,7 +120,7 @@ export function ChuyenDeClient({ chuyenDe, items, tienDoLyThuyet, tienDoVideo }:
                     </article>
 
                     {(activeItem as any).file_dinh_kem_url && (
-                      <div className="mt-8 border rounded-lg overflow-hidden h-[600px] w-full">
+                      <div className="mt-8 border rounded-lg overflow-hidden h-[75vh] w-full">
                         <PdfViewer fileKey={(activeItem as any).file_dinh_kem_url} isModal={false} />
                       </div>
                     )}

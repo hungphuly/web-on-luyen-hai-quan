@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, X, ChevronLeft, ChevronRight, Lock, ZoomIn, ZoomOut } from 'lucide-react';
+import { Loader2, X, ChevronLeft, ChevronRight, Lock, ZoomIn, ZoomOut, Maximize, Minimize } from 'lucide-react';
 import { layTamThoiLinkXemFile } from '@/lib/shared/actions/file-actions';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -26,6 +26,7 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [containerWidth, setContainerWidth] = useState<number>();
   const [baseScale, setBaseScale] = useState<number>(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Anti-fast-forward state
@@ -72,7 +73,7 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
     const observer = new ResizeObserver((entries) => {
       if (entries[0]) {
         // Subtract some padding to ensure it fits nicely
-        setContainerWidth(entries[0].contentRect.width - 32);
+        setContainerWidth(entries[0].contentRect.width - (isFullscreen ? 64 : 32));
       }
     });
 
@@ -81,7 +82,7 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
     }
 
     return () => observer.disconnect();
-  }, [signedUrl]);
+  }, [signedUrl, isFullscreen]);
 
   // Handle countdown when page changes
   useEffect(() => {
@@ -126,7 +127,12 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
   };
 
   const content = (
-    <div className="relative w-full h-full min-h-[500px] flex flex-col bg-gray-100 rounded-lg overflow-hidden">
+    <div className={`relative flex flex-col bg-gray-100 overflow-hidden transition-all duration-300
+      ${isFullscreen 
+        ? 'fixed inset-0 z-[100] w-full h-full rounded-none' 
+        : 'w-full h-full min-h-[500px] rounded-lg'
+      }
+    `}>
       {isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 z-10">
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
@@ -212,29 +218,40 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
             </div>
           </div>
 
-          <button
-            onClick={goToNextPage}
-            disabled={pageNumber >= numPages || pageNumber >= maxUnlockedPage}
-            className={`px-4 py-2 font-medium rounded-lg flex items-center gap-2 transition-colors
-              ${pageNumber >= maxUnlockedPage 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-primary text-primary-foreground hover:bg-primary/90'
-              }
-              ${pageNumber >= numPages ? 'opacity-0 pointer-events-none' : ''}
-            `}
-          >
-            {pageNumber >= maxUnlockedPage ? (
-              <>
-                <Lock className="w-4 h-4" />
-                <span className="hidden sm:inline">Sang trang sau: </span>{countdown}s
-              </>
-            ) : (
-              <>
-                <span className="hidden sm:inline">Trang tiếp</span>
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToNextPage}
+              disabled={pageNumber >= numPages || pageNumber >= maxUnlockedPage}
+              className={`px-4 py-2 font-medium rounded-lg flex items-center gap-2 transition-colors
+                ${pageNumber >= maxUnlockedPage 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                }
+                ${pageNumber >= numPages ? 'opacity-0 pointer-events-none hidden md:flex' : ''}
+              `}
+            >
+              {pageNumber >= maxUnlockedPage ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sang trang sau: </span>{countdown}s
+                </>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">Trang tiếp</span>
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+            
+            {/* Nút Toàn màn hình */}
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="p-2 ml-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors hidden md:flex items-center justify-center"
+              title={isFullscreen ? "Thu nhỏ lại" : "Phóng to toàn màn hình"}
+            >
+              {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       )}
     </div>
