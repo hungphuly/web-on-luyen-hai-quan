@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
+import { Loader2, X, ChevronLeft, ChevronRight, Lock, ZoomIn, ZoomOut } from 'lucide-react';
 import { layTamThoiLinkXemFile } from '@/lib/shared/actions/file-actions';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -25,6 +25,7 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [containerWidth, setContainerWidth] = useState<number>();
+  const [baseScale, setBaseScale] = useState<number>(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Anti-fast-forward state
@@ -158,6 +159,7 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
                 <div className="bg-white shadow-lg border border-gray-200 rounded-sm mb-4 inline-block w-auto mx-auto pointer-events-none">
                   <Page 
                     pageNumber={pageNumber} 
+                    scale={baseScale}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
                     className="max-w-full"
@@ -184,8 +186,30 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
             <span className="hidden sm:inline">Trang trước</span>
           </button>
 
-          <div className="text-sm font-medium text-gray-600">
-            Trang {pageNumber} / {numPages}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 hidden md:flex">
+              <button
+                onClick={() => setBaseScale(s => Math.max(0.5, s - 0.25))}
+                className="p-1.5 hover:bg-white rounded-md text-gray-600 transition-colors shadow-sm"
+                title="Thu nhỏ"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <span className="text-xs font-medium text-gray-600 w-10 text-center">
+                {Math.round(baseScale * 100)}%
+              </span>
+              <button
+                onClick={() => setBaseScale(s => Math.min(3, s + 0.25))}
+                className="p-1.5 hover:bg-white rounded-md text-gray-600 transition-colors shadow-sm"
+                title="Phóng to"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="text-sm font-medium text-gray-600">
+              Trang {pageNumber} / {numPages}
+            </div>
           </div>
 
           <button
