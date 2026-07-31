@@ -24,8 +24,8 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
   // Pagination state
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [scale] = useState<number>(1.2);
-  const [windowWidth, setWindowWidth] = useState<number | undefined>(undefined);
+  const [containerWidth, setContainerWidth] = useState<number>();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Anti-fast-forward state
   const [countdown, setCountdown] = useState<number>(0);
@@ -68,11 +68,19 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
   }, [fileKey]);
 
   useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        // Subtract some padding to ensure it fits nicely
+        setContainerWidth(entries[0].contentRect.width - 32);
+      }
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [signedUrl]);
 
   // Handle countdown when page changes
   useEffect(() => {
@@ -133,7 +141,7 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
       )}
 
       {signedUrl && (
-        <div className="flex-1 overflow-auto flex flex-col items-center bg-gray-200/50 p-4 relative select-none">
+        <div ref={containerRef} className="flex-1 overflow-auto flex flex-col items-center bg-gray-200/50 p-4 relative select-none">
            <Document
               file={signedUrl}
               onLoadSuccess={onDocumentLoadSuccess}
@@ -151,11 +159,10 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
                 <div className="bg-white shadow-lg border border-gray-200 rounded-sm mb-4 inline-block w-auto mx-auto pointer-events-none">
                   <Page 
                     pageNumber={pageNumber} 
-                    scale={scale} 
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
                     className="max-w-full"
-                    width={windowWidth && windowWidth < 768 ? windowWidth - 64 : undefined}
+                    width={containerWidth}
                   />
                 </div>
               )}
