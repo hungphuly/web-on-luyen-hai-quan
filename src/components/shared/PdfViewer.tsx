@@ -146,11 +146,10 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
               file={signedUrl}
               onLoadSuccess={onDocumentLoadSuccess}
               loading={<Loader2 className="w-8 h-8 animate-spin text-primary mx-auto my-12" />}
-              error={(err) => (
+              error={() => (
                 <div className="text-red-500 mt-4 max-w-md text-center">
                   <p className="font-bold">Lỗi khi đọc file PDF</p>
-                  <p className="text-sm mt-2">{err ? (err as Error).message : "Unknown error"}</p>
-                  <p className="text-xs text-gray-500 mt-2">Nếu lỗi liên quan đến CORS hoặc Failed to fetch, vui lòng kiểm tra lại cấu hình CORS trên Cloudflare R2 Bucket.</p>
+                  <p className="text-xs text-gray-500 mt-2">Vui lòng kiểm tra lại cấu hình CORS trên Cloudflare R2 Bucket.</p>
                 </div>
               )}
               className="flex flex-col items-center w-full"
