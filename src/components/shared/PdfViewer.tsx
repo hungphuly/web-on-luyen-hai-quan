@@ -7,11 +7,8 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
+// Configure PDF.js worker using CDN to avoid Next.js bundling issues
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface PdfViewerProps {
   fileKey: string;
@@ -141,7 +138,13 @@ export function PdfViewer({ fileKey, onClose, isModal = false }: PdfViewerProps)
               file={signedUrl}
               onLoadSuccess={onDocumentLoadSuccess}
               loading={<Loader2 className="w-8 h-8 animate-spin text-primary mx-auto my-12" />}
-              error={<div className="text-red-500 mt-4">Lỗi khi đọc file PDF</div>}
+              error={(err) => (
+                <div className="text-red-500 mt-4 max-w-md text-center">
+                  <p className="font-bold">Lỗi khi đọc file PDF</p>
+                  <p className="text-sm mt-2">{err ? (err as Error).message : "Unknown error"}</p>
+                  <p className="text-xs text-gray-500 mt-2">Nếu lỗi liên quan đến CORS hoặc Failed to fetch, vui lòng kiểm tra lại cấu hình CORS trên Cloudflare R2 Bucket.</p>
+                </div>
+              )}
               className="flex flex-col items-center w-full"
             >
               {numPages > 0 && (
