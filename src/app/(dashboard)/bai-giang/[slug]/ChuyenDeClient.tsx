@@ -7,7 +7,7 @@ import { YoutubePlayerClient } from './YoutubePlayerClient';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CompleteButton } from './CompleteButton';
-import { PdfViewerModal } from '@/components/shared/PdfViewerModal';
+import { PdfViewer } from '@/components/shared/PdfViewer';
 import Link from 'next/link';
 
 type LessonItem = 
@@ -120,8 +120,8 @@ export function ChuyenDeClient({ chuyenDe, items, tienDoLyThuyet, tienDoVideo }:
                     </article>
 
                     {(activeItem as any).file_dinh_kem_url && (
-                      <div className="mt-8">
-                        <PdfViewerModal fileKey={(activeItem as any).file_dinh_kem_url} />
+                      <div className="mt-8 border rounded-lg overflow-hidden h-[600px] w-full">
+                        <PdfViewer fileKey={(activeItem as any).file_dinh_kem_url} isModal={false} />
                       </div>
                     )}
 
