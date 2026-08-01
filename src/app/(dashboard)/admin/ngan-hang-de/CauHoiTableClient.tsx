@@ -96,18 +96,18 @@ export function CauHoiTableClient({
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phan_loai">Phân loại</Label>
-                  <select 
-                    id="phan_loai" 
-                    name="phan_loai" 
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    defaultValue={editingItem.phan_loai || 1} 
-                    required
-                  >
-                    <option value={1}>Ôn luyện (1)</option>
-                    <option value={2}>Thi thử (2)</option>
-                    <option value={3}>Thi thật (3)</option>
-                  </select>
+                  <Label>Phân loại</Label>
+                  <div className="flex gap-4 mt-2">
+                    <label className="flex items-center gap-1 text-sm">
+                      <input type="checkbox" name="phan_loai" value="1" defaultChecked={editingItem.phan_loai?.includes(1)} /> Ôn luyện
+                    </label>
+                    <label className="flex items-center gap-1 text-sm">
+                      <input type="checkbox" name="phan_loai" value="2" defaultChecked={editingItem.phan_loai?.includes(2)} /> Thi thử
+                    </label>
+                    <label className="flex items-center gap-1 text-sm">
+                      <input type="checkbox" name="phan_loai" value="3" defaultChecked={editingItem.phan_loai?.includes(3)} /> Thi thật
+                    </label>
+                  </div>
                 </div>
               </div>
               
@@ -227,9 +227,11 @@ export function CauHoiTableClient({
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                      {ch.phan_loai === 1 ? 'Ôn luyện' : ch.phan_loai === 2 ? 'Thi thử' : 'Thi thật'}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {ch.phan_loai?.includes(1) && <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Ôn luyện</span>}
+                      {ch.phan_loai?.includes(2) && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">Thi thử</span>}
+                      {ch.phan_loai?.includes(3) && <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Thi thật</span>}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-gray-500 text-xs line-clamp-2 max-w-[200px]">
                     {ch.can_cu_phap_ly}

@@ -62,7 +62,11 @@ export async function importExcelQuestions(formData: FormData) {
       const lua_chon_d = row[6]?.toString().trim();
       const can_cu_phap_ly = row[7]?.toString().trim();
       const do_kho = parseInt(row[8]);
-      const phan_loai = parseInt(row[9]);
+      let phan_loai: number[] = [];
+      if (typeof row[9] === 'string' || typeof row[9] === 'number') {
+        phan_loai = row[9].toString().split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+      }
+      if (phan_loai.length === 0) phan_loai = [1];
 
       // Validate nội dung và lựa chọn
       if (!noi_dung) errors.push({ row: tt, reason: 'Nội dung câu hỏi không được để trống' });
@@ -80,10 +84,8 @@ export async function importExcelQuestions(formData: FormData) {
       
       // Validate Độ khó và Phân loại
       if (isNaN(do_kho) || ![1, 2, 3].includes(do_kho)) {
-        errors.push({ row: tt, reason: 'Độ khó phải là 1, 2 hoặc 3' });
-      }
-      if (isNaN(phan_loai) || ![1, 2, 3].includes(phan_loai)) {
-        errors.push({ row: tt, reason: 'Phân loại phải là 1, 2 hoặc 3' });
+        errors.push({ row: i + 1, reason: 'Độ khó phải là 1, 2 hoặc 3' });
+        continue;
       }
 
       // Nếu không có lỗi ở dòng này, chuẩn bị data
@@ -138,7 +140,8 @@ export async function updateCauHoi(id: string, formData: FormData) {
   const giai_thich_chi_tiet = formData.get('giai_thich_chi_tiet') as string;
   const can_cu_phap_ly = formData.get('can_cu_phap_ly') as string;
   const do_kho = parseInt(formData.get('do_kho') as string);
-  const phan_loai = parseInt(formData.get('phan_loai') as string);
+  const phan_loai_raw = formData.getAll('phan_loai');
+  const phan_loai = phan_loai_raw.map(v => parseInt(v as string)).filter(n => !isNaN(n));
   
   const cac_lua_chon = {
     a: formData.get('lua_chon_a') as string,
@@ -151,8 +154,8 @@ export async function updateCauHoi(id: string, formData: FormData) {
     return { error: 'Vui lòng điền đủ các trường bắt buộc' };
   }
 
-  if (isNaN(do_kho) || isNaN(phan_loai)) {
-    return { error: 'Độ khó và Phân loại không hợp lệ' };
+  if (isNaN(do_kho) || phan_loai.length === 0) {
+    return { error: 'Độ khó hoặc phân loại không hợp lệ' };
   }
 
   const { error } = await supabase

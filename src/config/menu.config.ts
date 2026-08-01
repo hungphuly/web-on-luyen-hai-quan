@@ -57,6 +57,12 @@ export const MENU_CONFIG: MenuGroup[] = [
         requiresAuth: true,
       },
       {
+        title: 'Thi thật',
+        href: '/ky-thi',
+        icon: 'file-check-2',
+        requiresAuth: true,
+      },
+      {
         title: 'Tra cứu pháp luật',
         href: '/tai-lieu/tra-cuu',
         icon: 'scale',
@@ -126,6 +132,12 @@ export const MENU_CONFIG: MenuGroup[] = [
         title: 'Quản lý tài liệu pháp luật',
         href: '/admin/tai-lieu',
         icon: 'scale',
+        requiresAdmin: true,
+      },
+      {
+        title: 'Quản lý kỳ thi thật',
+        href: '/admin/ky-thi',
+        icon: 'file-check-2',
         requiresAdmin: true,
       },
       {

@@ -12,7 +12,7 @@ export interface CauHoiAdmin {
   giai_thich_chi_tiet: string | null;
   can_cu_phap_ly: string;
   do_kho: 1 | 2 | 3;
-  phan_loai: 1 | 2 | 3;
+  phan_loai: number[];
   nguoi_tao_id: string | null;
   chuyen_de?: { ten: string }; // Join relation
 }
@@ -29,7 +29,7 @@ export interface ExcelRowData {
   dieu_khoan: string;
   giai_thich: string;
   do_kho: number;
-  phan_loai: number;
+  phan_loai: string | number;
 }
 
 export interface ImportError {
