@@ -21,8 +21,8 @@ export function KetQuaClient({ kyThi, sessions }: Props) {
       const email = s.hoc_vien?.email || '';
       const sdt = s.hoc_vien?.so_dien_thoai || '';
       const trangThai = s.trang_thai === 'da_nop' ? 'Đã nộp' : 'Đang thi';
-      const batDau = new Date(s.bat_dau_luc).toLocaleString('vi-VN');
-      const ketThuc = s.ket_thuc_luc ? new Date(s.ket_thuc_luc).toLocaleString('vi-VN') : '';
+      const batDau = new Date(s.bat_dau_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+      const ketThuc = s.ket_thuc_luc ? new Date(s.ket_thuc_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '';
       const diem = s.diem_so !== null ? s.diem_so : '';
       
       csv += `${idx + 1},"${hoTen}","${email}","${sdt}","${trangThai}","${batDau}","${ketThuc}","${diem}"\n`;
@@ -92,8 +92,8 @@ export function KetQuaClient({ kyThi, sessions }: Props) {
                         )}
                       </td>
                       <td className="px-6 py-4 text-xs text-gray-600">
-                        <div>Bắt đầu: {new Date(s.bat_dau_luc).toLocaleString('vi-VN')}</div>
-                        {s.ket_thuc_luc && <div>Kết thúc: {new Date(s.ket_thuc_luc).toLocaleString('vi-VN')}</div>}
+                        <div>Bắt đầu: {new Date(s.bat_dau_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</div>
+                        {s.ket_thuc_luc && <div>Kết thúc: {new Date(s.ket_thuc_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</div>}
                       </td>
                       <td className="px-6 py-4 text-right">
                         {isCompleted ? (

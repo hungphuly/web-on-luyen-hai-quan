@@ -2,7 +2,7 @@ import { createClient } from '@/lib/shared/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Clock, FileText, CheckCircle } from 'lucide-react';
+import { Clock, FileText, CheckCircle, CalendarRange } from 'lucide-react';
 import { KyThi } from '@/lib/modules/ky-thi/types';
 
 export const metadata = {
@@ -73,15 +73,28 @@ export default async function KyThiPage() {
                   
                   {exam.mo_ta && <p className="text-sm text-gray-600 mb-4">{exam.mo_ta}</p>}
                   
-                  <div className="flex gap-4 text-sm text-gray-600 mb-6">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{exam.thoi_gian_lam_bai} phút</span>
+                  <div className="flex flex-col gap-2 text-sm text-gray-600 mb-6">
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{exam.thoi_gian_lam_bai} phút</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FileText className="w-4 h-4" />
+                        <span>{exam.so_luong_cau_hoi} câu hỏi</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <FileText className="w-4 h-4" />
-                      <span>{exam.so_luong_cau_hoi} câu hỏi</span>
-                    </div>
+                    
+                    {(exam.thoi_gian_bat_dau || exam.thoi_gian_ket_thuc) && (
+                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-600 bg-gray-50 p-2 rounded-md border">
+                        <CalendarRange className="w-4 h-4 shrink-0 text-gray-400" />
+                        <span>
+                          {exam.thoi_gian_bat_dau ? new Date(exam.thoi_gian_bat_dau).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Không giới hạn'} 
+                          {' đến '} 
+                          {exam.thoi_gian_ket_thuc ? new Date(exam.thoi_gian_ket_thuc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Không giới hạn'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
