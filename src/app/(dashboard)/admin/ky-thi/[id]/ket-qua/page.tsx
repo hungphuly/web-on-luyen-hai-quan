@@ -6,6 +6,8 @@ export const metadata = {
   title: 'Kết quả Kỳ thi',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminKetQuaKyThiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
