@@ -256,3 +256,65 @@ export async function getAllHocVienForExport(params: {
 
   return processedData;
 }
+
+export async function xoaHocVien(id: string) {
+  await checkAdminAuth();
+  const adminSupabase = await createAdminClient();
+
+  const { error } = await adminSupabase.from('hoc_vien').delete().eq('id', id);
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function getHocVienReport(hoc_vien_id: string) {
+  await checkAdminAuth();
+  const adminSupabase = await createAdminClient();
+
+  const [
+    { count: videoDone },
+    { count: lyThuyetDone },
+    { data: onLuyenData },
+    { data: thiThuData },
+    { data: thiThatData }
+  ] = await Promise.all([
+    adminSupabase.from('video_tien_do').select('*', { count: 'exact', head: true }).eq('hoc_vien_id', hoc_vien_id).eq('da_hoan_thanh', true),
+    adminSupabase.from('tien_do_hoc_lieu').select('*', { count: 'exact', head: true }).eq('hoc_vien_id', hoc_vien_id).eq('da_hoan_thanh', true),
+    adminSupabase.from('phien_on_luyen').select('so_cau_da_lam, so_cau_dung').eq('hoc_vien_id', hoc_vien_id),
+    adminSupabase.from('ket_qua_thi').select('diem_so').eq('hoc_vien_id', hoc_vien_id).eq('loai_bai', 'thi_thu'),
+    adminSupabase.from('ky_thi_phien_lam_bai').select('diem_so').eq('hoc_vien_id', hoc_vien_id).eq('trang_thai', 'da_nop')
+  ]);
+
+  // Ôn luyện
+  const tongCauDaLam = (onLuyenData || []).reduce((sum, p) => sum + (p.so_cau_da_lam || 0), 0);
+  const tongCauDung = (onLuyenData || []).reduce((sum, p) => sum + (p.so_cau_dung || 0), 0);
+  const onLuyenTyLe = tongCauDaLam > 0 ? (tongCauDung / tongCauDaLam) * 100 : 0;
+
+  // Thi thử
+  const thiThuCount = thiThuData?.length || 0;
+  const thiThuAvg = thiThuCount > 0 ? thiThuData!.reduce((sum, p) => sum + (p.diem_so || 0), 0) / thiThuCount : 0;
+
+  // Thi thật
+  const thiThatCount = thiThatData?.length || 0;
+  const thiThatAvg = thiThatCount > 0 ? thiThatData!.reduce((sum, p) => sum + (p.diem_so || 0), 0) / thiThatCount : 0;
+
+  return {
+    hocLieu: {
+      video: videoDone || 0,
+      lyThuyet: lyThuyetDone || 0
+    },
+    onLuyen: {
+      daLam: tongCauDaLam,
+      dung: tongCauDung,
+      tyLe: Math.round(onLuyenTyLe)
+    },
+    thiThu: {
+      luotThi: thiThuCount,
+      diemTrungBinh: Number(thiThuAvg.toFixed(2))
+    },
+    thiThat: {
+      luotThi: thiThatCount,
+      diemTrungBinh: Number(thiThatAvg.toFixed(2))
+    }
+  };
+}
