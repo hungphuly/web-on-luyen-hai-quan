@@ -2,8 +2,9 @@
 
 import { KyThi, KyThiPhienLamBai } from '@/lib/modules/ky-thi/types';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Download, ArrowLeft, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import * as XLSX from 'xlsx';
 
 interface Props {
   kyThi: KyThi;
@@ -13,28 +14,33 @@ interface Props {
 export function KetQuaClient({ kyThi, sessions }: Props) {
 
   const handleExport = () => {
-    // Generate CSV
-    let csv = 'STT,Họ tên,Email,Trạng thái,Bắt đầu,Kết thúc,Điểm số\n';
-    
-    sessions.forEach((s, idx) => {
-      const hoTen = s.hoc_vien?.ho_ten || '';
-      const email = s.hoc_vien?.email || '';
-      const trangThai = s.trang_thai === 'da_nop' ? 'Đã nộp' : 'Đang thi';
-      const batDau = new Date(s.bat_dau_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-      const ketThuc = s.ket_thuc_luc ? new Date(s.ket_thuc_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '';
-      const diem = s.diem_so !== null ? s.diem_so : '';
-      
-      csv += `${idx + 1},"${hoTen}","${email}","${trangThai}","${batDau}","${ketThuc}","${diem}"\n`;
-    });
+    const dataToExport = sessions.map((s, idx) => ({
+      'STT': idx + 1,
+      'Họ tên': s.hoc_vien?.ho_ten || '',
+      'Email': s.hoc_vien?.email || '',
+      'Trạng thái': s.trang_thai === 'da_nop' ? 'Đã nộp' : 'Đang thi',
+      'Bắt đầu': new Date(s.bat_dau_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+      'Kết thúc': s.ket_thuc_luc ? new Date(s.ket_thuc_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '',
+      'Điểm số': s.diem_so !== null ? s.diem_so : ''
+    }));
 
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Bang_Diem_${kyThi.ten_ky_thi.replace(/\s+/g, '_')}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bang Diem");
+    
+    // Auto-size columns (approximate)
+    const wscols = [
+      { wch: 5 }, // STT
+      { wch: 25 }, // Họ tên
+      { wch: 30 }, // Email
+      { wch: 15 }, // Trạng thái
+      { wch: 20 }, // Bắt đầu
+      { wch: 20 }, // Kết thúc
+      { wch: 10 }  // Điểm số
+    ];
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `Bang_Diem_${kyThi.ten_ky_thi.replace(/\s+/g, '_')}.xlsx`);
   };
 
   return (
