@@ -198,8 +198,7 @@ export async function getKyThiStats() {
     { data: kyThiList },
     { data: phienLamBaiList }
   ] = await Promise.all([
-    adminSupabase.from('ky_thi').select('id, ten_ky_thi').eq('trang_thai', 'da_ket_thuc'),
-    // Sử dụng lại ky_thi_phien_lam_bai và lọc những người đã nộp bài (da_nop)
+    adminSupabase.from('ky_thi').select('id, ten_ky_thi').in('trang_thai', ['active', 'da_ket_thuc', 'hoan_thanh']),
     adminSupabase.from('ky_thi_phien_lam_bai').select('ky_thi_id, diem_so, hoc_vien_id').eq('trang_thai', 'da_nop')
   ]);
 

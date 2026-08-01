@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Download, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { getHocVienReport } from '@/lib/modules/admin/actions/hoc-vien.actions';
+import { BookOpen, Target, FileSignature, Trophy, Calendar, Clock } from 'lucide-react';
 
 export function HocVienClient() {
   const [data, setData] = useState<HocVienData[]>([]);
@@ -17,6 +20,12 @@ export function HocVienClient() {
   const [search, setSearch] = useState('');
   const [isNew, setIsNew] = useState<'all' | 'new' | 'old'>('all');
   const [isDonated, setIsDonated] = useState<'all' | 'donated' | 'not_donated'>('all');
+  const [isStudying, setIsStudying] = useState<'all' | 'studying' | 'lazy'>('all');
+  
+  // Modal Report state
+  const [reportUser, setReportUser] = useState<HocVienData | null>(null);
+  const [reportData, setReportData] = useState<any>(null);
+  const [reportLoading, setReportLoading] = useState(false);
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -30,7 +39,8 @@ export function HocVienClient() {
         limit,
         search,
         isNew,
-        isDonated
+        isDonated,
+        isStudying
       });
       setData(res.data);
       setTotal(res.total);
@@ -39,7 +49,7 @@ export function HocVienClient() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, isNew, isDonated]);
+  }, [page, limit, search, isNew, isDonated, isStudying]);
 
   useEffect(() => {
     fetchData();
@@ -48,9 +58,30 @@ export function HocVienClient() {
   // Reset pagination when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, isNew, isDonated]);
+  }, [search, isNew, isDonated, isStudying]);
 
   const totalPages = Math.ceil(total / limit);
+
+  const handleOpenReport = async (user: HocVienData) => {
+    setReportUser(user);
+    setReportLoading(true);
+    try {
+      const data = await getHocVienReport(user.id);
+      setReportData(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const formatTimeAgo = (dateStr: string | null) => {
+    if (!dateStr) return 'Chưa học';
+    const diffHours = (new Date().getTime() - new Date(dateStr).getTime()) / (1000 * 60 * 60);
+    if (diffHours < 24) return 'Hôm nay';
+    if (diffHours < 48) return 'Hôm qua';
+    return `${Math.floor(diffHours / 24)} ngày trước`;
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -140,6 +171,15 @@ export function HocVienClient() {
           <option value="donated">Đã Donate</option>
           <option value="not_donated">Chưa Donate</option>
         </select>
+        <select 
+          className="h-10 rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-full sm:w-auto"
+          value={isStudying}
+          onChange={(e) => setIsStudying(e.target.value as any)}
+        >
+          <option value="all">Tất cả Trạng thái Học</option>
+          <option value="studying">Chăm học (7 ngày)</option>
+          <option value="lazy">Bỏ bê (&gt; 7 ngày)</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -152,8 +192,9 @@ export function HocVienClient() {
                 <th className="px-6 py-4 font-semibold">Học viên</th>
                 <th className="px-6 py-4 font-semibold">Ngày đăng ký</th>
                 <th className="px-6 py-4 font-semibold">Phân loại</th>
-                <th className="px-6 py-4 font-semibold">Donate</th>
                 <th className="px-6 py-4 font-semibold">Loại tài khoản</th>
+                <th className="px-6 py-4 font-semibold">H.động gần nhất</th>
+                <th className="px-6 py-4 font-semibold text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -191,15 +232,6 @@ export function HocVienClient() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {hv.tong_donate > 0 ? (
-                        <span className="text-green-600 font-semibold">
-                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hv.tong_donate)}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">Chưa</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
                         hv.loai_tai_khoan === 'admin' ? 'bg-red-100 text-red-700' : 
                         hv.loai_tai_khoan === 'vip' ? 'bg-yellow-100 text-yellow-700' : 
@@ -207,6 +239,22 @@ export function HocVienClient() {
                       }`}>
                         {hv.loai_tai_khoan.toUpperCase()}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">
+                      <div className="flex items-center gap-1 text-xs">
+                        <Clock className="w-3 h-3" />
+                        {formatTimeAgo(hv.last_activity)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-primary border-primary/30 hover:bg-primary/10"
+                        onClick={() => handleOpenReport(hv)}
+                      >
+                        Xem tiến độ
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -245,6 +293,89 @@ export function HocVienClient() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!reportUser} onOpenChange={(open) => !open && setReportUser(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Trophy className="w-6 h-6 text-yellow-500" />
+              Báo cáo tiến độ: <span className="text-primary">{reportUser?.ho_ten || reportUser?.email}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Theo dõi chi tiết mức độ chăm chỉ và kết quả học tập của học viên này trên toàn hệ thống.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {reportLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
+                Đang tổng hợp dữ liệu học tập...
+              </div>
+            ) : reportData ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100 flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-blue-800 font-bold text-lg mb-2">
+                    <BookOpen className="w-5 h-5" /> 1. Hoàn thành Học liệu
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Video Bài giảng</span>
+                    <span className="font-bold text-xl">{reportData.hocLieu.video} <span className="text-sm font-normal text-gray-400">bài</span></span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Lý thuyết</span>
+                    <span className="font-bold text-xl">{reportData.hocLieu.lyThuyet} <span className="text-sm font-normal text-gray-400">bài</span></span>
+                  </div>
+                </div>
+
+                <div className="bg-purple-50/50 p-5 rounded-xl border border-purple-100 flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-purple-800 font-bold text-lg mb-2">
+                    <Target className="w-5 h-5" /> 2. Kết quả Ôn luyện
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Tổng số câu đã làm</span>
+                    <span className="font-bold text-xl">{reportData.onLuyen.daLam}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Tỷ lệ trả lời đúng</span>
+                    <span className={`font-bold text-xl ${reportData.onLuyen.tyLe < 50 ? 'text-red-600' : 'text-green-600'}`}>
+                      {reportData.onLuyen.tyLe}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-100 flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-orange-800 font-bold text-lg mb-2">
+                    <FileSignature className="w-5 h-5" /> 3. Tham gia Thi thử
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Số lượt thi</span>
+                    <span className="font-bold text-xl">{reportData.thiThu.luotThi}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Điểm số trung bình</span>
+                    <span className="font-bold text-xl text-orange-600">{reportData.thiThu.diemTrungBinh}</span>
+                  </div>
+                </div>
+
+                <div className="bg-green-50/50 p-5 rounded-xl border border-green-100 flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-green-800 font-bold text-lg mb-2">
+                    <Trophy className="w-5 h-5" /> 4. Kết quả Thi thật
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Số lượt thi</span>
+                    <span className="font-bold text-xl">{reportData.thiThat.luotThi}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                    <span className="text-gray-600 font-medium">Điểm số trung bình</span>
+                    <span className="font-bold text-xl text-green-600">{reportData.thiThat.diemTrungBinh}</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

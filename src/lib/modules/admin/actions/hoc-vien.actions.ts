@@ -27,6 +27,7 @@ export type HocVienData = {
   created_at: string;
   phan_loai: 'Mới' | 'Cũ';
   tong_donate: number;
+  last_activity: string | null;
 };
 
 export async function getDanhSachHocVien(params: {
@@ -35,6 +36,7 @@ export async function getDanhSachHocVien(params: {
   search?: string;
   isNew?: 'all' | 'new' | 'old';
   isDonated?: 'all' | 'donated' | 'not_donated';
+  isStudying?: 'all' | 'studying' | 'lazy';
 }) {
   await checkAdminAuth();
 
@@ -83,6 +85,34 @@ export async function getDanhSachHocVien(params: {
     }
   }
 
+  // 3.5 Filter Chăm học (Studying in last 7 days)
+  if (params.isStudying && params.isStudying !== 'all') {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const isoString7 = sevenDaysAgo.toISOString();
+
+    const [ { data: activeOnLuyen }, { data: activeThi } ] = await Promise.all([
+      adminSupabase.from('phien_on_luyen').select('hoc_vien_id').gte('ngay_lam', isoString7),
+      adminSupabase.from('ket_qua_thi').select('hoc_vien_id').gte('ngay_thi', isoString7)
+    ]);
+    const activeIds = Array.from(new Set([
+      ...(activeOnLuyen?.map(d => d.hoc_vien_id) || []),
+      ...(activeThi?.map(d => d.hoc_vien_id) || [])
+    ]));
+
+    if (params.isStudying === 'studying') {
+      if (activeIds.length > 0) {
+        query = query.in('id', activeIds);
+      } else {
+        query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+      }
+    } else if (params.isStudying === 'lazy') {
+      if (activeIds.length > 0) {
+        query = query.not('id', 'in', `(${activeIds.join(',')})`);
+      }
+    }
+  }
+
   // 4. Pagination & Sorting
   const from = (params.page - 1) * params.limit;
   const to = from + params.limit - 1;
@@ -99,11 +129,27 @@ export async function getDanhSachHocVien(params: {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  // Lấy thêm Last Activity cho các User này
+  const displayedUserIds = (data || []).map(r => r.id);
+  const [ { data: lastOnLuyen }, { data: lastThi } ] = await Promise.all([
+    adminSupabase.from('phien_on_luyen').select('hoc_vien_id, ngay_lam').in('hoc_vien_id', displayedUserIds),
+    adminSupabase.from('ket_qua_thi').select('hoc_vien_id, ngay_thi').in('hoc_vien_id', displayedUserIds)
+  ]);
+
+  const activityMap = new Map<string, string>();
+  [...(lastOnLuyen || []).map(o => ({ id: o.hoc_vien_id, time: o.ngay_lam })), 
+   ...(lastThi || []).map(t => ({ id: t.hoc_vien_id, time: t.ngay_thi }))].forEach(act => {
+    if (!act.time) return;
+    const currentMax = activityMap.get(act.id);
+    if (!currentMax || new Date(act.time) > new Date(currentMax)) {
+      activityMap.set(act.id, act.time);
+    }
+  });
+
   const processedData: HocVienData[] = (data || []).map(row => {
     const createdAt = new Date(row.created_at);
     const isNew = createdAt >= thirtyDaysAgo;
     
-    // Tính tổng tiền từ bảng ung_ho
     const ungHoList = row.ung_ho || [];
     const successfulUngHo = ungHoList.filter((u: any) => u.trang_thai === 'thanh_cong');
     const tongDonate = successfulUngHo.reduce((sum: number, current: any) => sum + Number(current.so_tien || 0), 0);
@@ -116,7 +162,8 @@ export async function getDanhSachHocVien(params: {
       vip_het_han: row.vip_het_han,
       created_at: row.created_at,
       phan_loai: isNew ? 'Mới' : 'Cũ',
-      tong_donate: tongDonate
+      tong_donate: tongDonate,
+      last_activity: activityMap.get(row.id) || null
     };
   });
 
