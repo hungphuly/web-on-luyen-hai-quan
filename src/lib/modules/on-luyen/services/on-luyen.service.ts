@@ -29,7 +29,7 @@ export async function getDanhSachCauHoiPublic(chuyenDeId: string): Promise<CauHo
     .from('cau_hoi_public')
     .select('*')
     .eq('chuyen_de_id', chuyenDeId)
-    .eq('phan_loai', 1);
+    .contains('phan_loai', [1]);
 
   if (error) {
     console.error('Lỗi khi lấy danh sách câu hỏi public:', error);
