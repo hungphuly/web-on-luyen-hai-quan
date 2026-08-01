@@ -250,7 +250,8 @@ export async function getAllHocVienForExport(params: {
       vip_het_han: row.vip_het_han,
       created_at: row.created_at,
       phan_loai: isNew ? 'Mới' : 'Cũ',
-      tong_donate: tongDonate
+      tong_donate: tongDonate,
+      last_activity: null
     };
   });
 
