@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/shared/utils/supabase/server';
+import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { KetQuaClient } from './KetQuaClient';
 
@@ -30,8 +30,9 @@ export default async function AdminKetQuaKyThiPage({ params }: { params: Promise
   
   if (!kyThi) return <div>Không tìm thấy kỳ thi</div>;
 
-  // Get results
-  const { data: sessions, error: sessionsError } = await supabase
+  // Get results using admin client to bypass RLS on hoc_vien table
+  const adminSupabase = await createAdminClient();
+  const { data: sessions, error: sessionsError } = await adminSupabase
     .from('ky_thi_phien_lam_bai')
     .select(`
       *,
