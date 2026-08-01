@@ -22,15 +22,24 @@ export function KyThiClient({ initialData, chuyenDeList }: Props) {
   
   const [openModal, setOpenModal] = useState(false);
   const [editingItem, setEditingItem] = useState<KyThi | null>(null);
+  const [doiTuongType, setDoiTuongType] = useState('all');
 
   const handleOpenAdd = () => {
     setEditingItem(null);
+    setDoiTuongType('all');
     setOpenModal(true);
   };
 
   const handleOpenEdit = (item: KyThi) => {
     setEditingItem(item);
+    setDoiTuongType(item.doi_tuong_thi?.type || 'all');
     setOpenModal(true);
+  };
+
+  const formatToLocalDatetime = (isoString?: string | null) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -157,6 +166,32 @@ export function KyThiClient({ initialData, chuyenDeList }: Props) {
             </div>
 
             <div className="space-y-2">
+              <Label>Phân loại câu hỏi (Lấy loại câu nào?)</Label>
+              <div className="flex gap-4 p-4 border rounded-md">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="phan_loai_cau_hoi" value="1" defaultChecked={editingItem?.phan_loai_cau_hoi?.includes(1)} /> Ôn luyện
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="phan_loai_cau_hoi" value="2" defaultChecked={editingItem?.phan_loai_cau_hoi?.includes(2)} /> Thi thử
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="phan_loai_cau_hoi" value="3" defaultChecked={editingItem?.phan_loai_cau_hoi ? editingItem.phan_loai_cau_hoi.includes(3) : true} /> Thi thật
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="thoi_gian_bat_dau">Thời gian mở thi (Từ)</Label>
+                <Input type="datetime-local" id="thoi_gian_bat_dau" name="thoi_gian_bat_dau" defaultValue={formatToLocalDatetime(editingItem?.thoi_gian_bat_dau)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="thoi_gian_ket_thuc">Thời gian đóng thi (Đến)</Label>
+                <Input type="datetime-local" id="thoi_gian_ket_thuc" name="thoi_gian_ket_thuc" defaultValue={formatToLocalDatetime(editingItem?.thoi_gian_ket_thuc)} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label>Phạm vi chuyên đề (Lấy câu hỏi từ đâu?)</Label>
               <div className="grid grid-cols-2 gap-2 mt-2 p-4 border rounded-md max-h-48 overflow-y-auto">
                 <label className="flex items-center gap-2 text-sm">
@@ -176,6 +211,31 @@ export function KyThiClient({ initialData, chuyenDeList }: Props) {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">Nếu chọn &quot;Tất cả chuyên đề&quot;, hệ thống sẽ bỏ qua các chuyên đề cụ thể được chọn.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="doi_tuong_thi_type">Đối tượng được phép thi</Label>
+              <select 
+                id="doi_tuong_thi_type" 
+                name="doi_tuong_thi_type" 
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={doiTuongType}
+                onChange={(e) => setDoiTuongType(e.target.value)}
+              >
+                <option value="all">Tất cả học viên</option>
+                <option value="emails">Danh sách Email cụ thể</option>
+              </select>
+              
+              {doiTuongType === 'emails' && (
+                <div className="mt-2">
+                  <textarea 
+                    name="doi_tuong_thi_emails" 
+                    placeholder="Nhập danh sách email, cách nhau bằng dấu phẩy (ví dụ: a@gmail.com, b@gmail.com)"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    defaultValue={editingItem?.doi_tuong_thi?.emails?.join(', ') || ''}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

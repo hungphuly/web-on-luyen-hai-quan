@@ -14,6 +14,21 @@ export async function getOrCreateKyThiSession(kyThiId: string) {
   const { data: kyThi } = await supabase.from('ky_thi').select('*').eq('id', kyThiId).single();
   if (!kyThi || kyThi.trang_thai !== 'active') return { error: 'Kỳ thi không tồn tại hoặc đã đóng.' };
 
+  const now = new Date();
+  if (kyThi.thoi_gian_bat_dau && new Date(kyThi.thoi_gian_bat_dau) > now) {
+    return { error: 'Kỳ thi chưa bắt đầu.' };
+  }
+  if (kyThi.thoi_gian_ket_thuc && new Date(kyThi.thoi_gian_ket_thuc) < now) {
+    return { error: 'Kỳ thi đã kết thúc.' };
+  }
+
+  if (kyThi.doi_tuong_thi?.type === 'emails') {
+    const { data: hocVien } = await supabase.from('hoc_vien').select('email').eq('id', user.id).single();
+    if (!hocVien || !kyThi.doi_tuong_thi.emails.includes(hocVien.email)) {
+      return { error: 'Bạn không thuộc danh sách đối tượng được thi.' };
+    }
+  }
+
   // Check existing session
   const { data: existingSession } = await supabase
     .from('ky_thi_phien_lam_bai')
@@ -28,8 +43,14 @@ export async function getOrCreateKyThiSession(kyThiId: string) {
   }
 
   // Create new session
-  // 1. Get questions (phan_loai contains 3 for Thi that)
-  let query = supabase.from('cau_hoi_public').select('*').contains('phan_loai', [3]);
+  // 1. Get questions
+  let query = supabase.from('cau_hoi_public').select('*');
+  
+  if (kyThi.phan_loai_cau_hoi && kyThi.phan_loai_cau_hoi.length > 0) {
+    query = query.overlaps('phan_loai', kyThi.phan_loai_cau_hoi);
+  } else {
+    query = query.contains('phan_loai', [3]); // Fallback
+  }
   
   if (kyThi.cau_hinh_chuyen_de && kyThi.cau_hinh_chuyen_de.length > 0) {
     query = query.in('chuyen_de_id', kyThi.cau_hinh_chuyen_de);

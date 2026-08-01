@@ -44,6 +44,24 @@ export async function upsertKyThi(id: string | null, formData: FormData) {
     return { error: 'Vui lòng điền đầy đủ các trường bắt buộc' };
   }
 
+  const phan_loai_raw = formData.getAll('phan_loai_cau_hoi');
+  let phan_loai_cau_hoi = phan_loai_raw.map(v => parseInt(v as string)).filter(v => !isNaN(v));
+  if (phan_loai_cau_hoi.length === 0) phan_loai_cau_hoi = [3]; // Default
+
+  const tgbd = formData.get('thoi_gian_bat_dau') as string;
+  const thoi_gian_bat_dau = tgbd ? new Date(tgbd).toISOString() : null;
+
+  const tgkt = formData.get('thoi_gian_ket_thuc') as string;
+  const thoi_gian_ket_thuc = tgkt ? new Date(tgkt).toISOString() : null;
+
+  const doi_tuong_thi_type = formData.get('doi_tuong_thi_type') as string;
+  let doi_tuong_thi: any = { type: 'all' };
+  if (doi_tuong_thi_type === 'emails') {
+    const emails_raw = formData.get('doi_tuong_thi_emails') as string;
+    const emails = emails_raw ? emails_raw.split(',').map(e => e.trim()).filter(e => e) : [];
+    doi_tuong_thi = { type: 'emails', emails };
+  }
+
   const payload = {
     ten_ky_thi,
     mo_ta,
@@ -51,7 +69,10 @@ export async function upsertKyThi(id: string | null, formData: FormData) {
     so_luong_cau_hoi,
     trang_thai,
     cau_hinh_chuyen_de,
-    doi_tuong_thi: { type: 'all' } // Default for now
+    phan_loai_cau_hoi,
+    thoi_gian_bat_dau,
+    thoi_gian_ket_thuc,
+    doi_tuong_thi
   };
 
   if (id) {

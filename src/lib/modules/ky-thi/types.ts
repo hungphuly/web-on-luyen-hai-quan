@@ -3,6 +3,9 @@ export interface KyThi {
   ten_ky_thi: string;
   mo_ta: string | null;
   thoi_gian_lam_bai: number;
+  phan_loai_cau_hoi: number[];
+  thoi_gian_bat_dau: string | null;
+  thoi_gian_ket_thuc: string | null;
   cau_hinh_chuyen_de: string[] | null;
   so_luong_cau_hoi: number;
   doi_tuong_thi: any;
