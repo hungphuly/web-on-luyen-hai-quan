@@ -6,7 +6,8 @@ export const metadata = {
   title: 'Kết quả Kỳ thi',
 };
 
-export default async function AdminKetQuaKyThiPage({ params }: { params: { id: string } }) {
+export default async function AdminKetQuaKyThiPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -25,7 +26,7 @@ export default async function AdminKetQuaKyThiPage({ params }: { params: { id: s
   }
 
   // Get ky_thi details
-  const { data: kyThi } = await supabase.from('ky_thi').select('*').eq('id', params.id).single();
+  const { data: kyThi } = await supabase.from('ky_thi').select('*').eq('id', id).single();
   
   if (!kyThi) return <div>Không tìm thấy kỳ thi</div>;
 
@@ -40,7 +41,7 @@ export default async function AdminKetQuaKyThiPage({ params }: { params: { id: s
         so_dien_thoai
       )
     `)
-    .eq('ky_thi_id', params.id)
+    .eq('ky_thi_id', id)
     .order('diem_so', { ascending: false, nullsFirst: false });
 
   return <KetQuaClient kyThi={kyThi} sessions={sessions || []} />;

@@ -161,7 +161,7 @@ export function KyThiClient({ initialData, chuyenDeList }: Props) {
               <div className="grid grid-cols-2 gap-2 mt-2 p-4 border rounded-md max-h-48 overflow-y-auto">
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="cau_hinh_chuyen_de" value="all" defaultChecked={!editingItem?.cau_hinh_chuyen_de} />
-                  <span className="font-bold text-primary">Tất cả chuyên đề</span>
+                  <span className="font-bold text-primary">&quot;Tất cả chuyên đề&quot;</span>
                 </label>
                 {chuyenDeList.map(cd => (
                   <label key={cd.id} className="flex items-center gap-2 text-sm">
@@ -175,7 +175,7 @@ export function KyThiClient({ initialData, chuyenDeList }: Props) {
                   </label>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">Nếu chọn "Tất cả chuyên đề", hệ thống sẽ bỏ qua các chuyên đề cụ thể được chọn.</p>
+              <p className="text-xs text-muted-foreground">Nếu chọn &quot;Tất cả chuyên đề&quot;, hệ thống sẽ bỏ qua các chuyên đề cụ thể được chọn.</p>
             </div>
 
             <div className="space-y-2">

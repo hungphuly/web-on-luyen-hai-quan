@@ -67,6 +67,7 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.bat_dau_luc, kyThi.thoi_gian_lam_bai, isCompleted]);
 
   const handleSelect = (questionId: string, value: string) => {
