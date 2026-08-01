@@ -40,8 +40,7 @@ export default async function AdminKetQuaKyThiPage({ params }: { params: Promise
       *,
       hoc_vien (
         ho_ten,
-        email,
-        so_dien_thoai
+        email
       )
     `)
     .eq('ky_thi_id', id)

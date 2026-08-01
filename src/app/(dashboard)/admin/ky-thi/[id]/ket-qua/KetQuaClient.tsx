@@ -14,18 +14,17 @@ export function KetQuaClient({ kyThi, sessions }: Props) {
 
   const handleExport = () => {
     // Generate CSV
-    let csv = 'STT,Họ tên,Email,Số điện thoại,Trạng thái,Bắt đầu,Kết thúc,Điểm số\n';
+    let csv = 'STT,Họ tên,Email,Trạng thái,Bắt đầu,Kết thúc,Điểm số\n';
     
     sessions.forEach((s, idx) => {
       const hoTen = s.hoc_vien?.ho_ten || '';
       const email = s.hoc_vien?.email || '';
-      const sdt = s.hoc_vien?.so_dien_thoai || '';
       const trangThai = s.trang_thai === 'da_nop' ? 'Đã nộp' : 'Đang thi';
       const batDau = new Date(s.bat_dau_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
       const ketThuc = s.ket_thuc_luc ? new Date(s.ket_thuc_luc).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '';
       const diem = s.diem_so !== null ? s.diem_so : '';
       
-      csv += `${idx + 1},"${hoTen}","${email}","${sdt}","${trangThai}","${batDau}","${ketThuc}","${diem}"\n`;
+      csv += `${idx + 1},"${hoTen}","${email}","${trangThai}","${batDau}","${ketThuc}","${diem}"\n`;
     });
 
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -78,7 +77,6 @@ export function KetQuaClient({ kyThi, sessions }: Props) {
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900">{s.hoc_vien?.ho_ten || 'N/A'}</div>
                         <div className="text-xs text-gray-500">{s.hoc_vien?.email}</div>
-                        <div className="text-xs text-gray-500">{s.hoc_vien?.so_dien_thoai}</div>
                       </td>
                       <td className="px-6 py-4">
                         {isCompleted ? (
