@@ -31,11 +31,11 @@ export default async function AdminKetQuaKyThiPage({ params }: { params: Promise
   if (!kyThi) return <div>Không tìm thấy kỳ thi</div>;
 
   // Get results
-  const { data: sessions } = await supabase
+  const { data: sessions, error: sessionsError } = await supabase
     .from('ky_thi_phien_lam_bai')
     .select(`
       *,
-      hoc_vien:hoc_vien_id (
+      hoc_vien (
         ho_ten,
         email,
         so_dien_thoai
@@ -43,6 +43,10 @@ export default async function AdminKetQuaKyThiPage({ params }: { params: Promise
     `)
     .eq('ky_thi_id', id)
     .order('diem_so', { ascending: false, nullsFirst: false });
+
+  if (sessionsError) {
+    console.error('Error fetching sessions:', sessionsError);
+  }
 
   return <KetQuaClient kyThi={kyThi} sessions={sessions || []} />;
 }
