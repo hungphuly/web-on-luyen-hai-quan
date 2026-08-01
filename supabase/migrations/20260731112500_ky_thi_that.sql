@@ -2,6 +2,7 @@
 DROP VIEW IF EXISTS public.cau_hoi_public;
 
 ALTER TABLE public.cau_hoi DROP CONSTRAINT IF EXISTS cau_hoi_phan_loai_check;
+ALTER TABLE public.cau_hoi ALTER COLUMN phan_loai DROP DEFAULT;
 ALTER TABLE public.cau_hoi ALTER COLUMN phan_loai TYPE integer[] USING ARRAY[phan_loai];
 ALTER TABLE public.cau_hoi ALTER COLUMN phan_loai SET DEFAULT '{1}';
 
