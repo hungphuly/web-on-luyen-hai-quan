@@ -57,7 +57,7 @@ export const MENU_CONFIG: MenuGroup[] = [
         requiresAuth: true,
       },
       {
-        title: 'Thi thật',
+        title: 'Kỳ thi chính thức',
         href: '/ky-thi',
         icon: 'file-check-2',
         requiresAuth: true,

@@ -108,6 +108,7 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
   // Render mode: View Results
   if (isCompleted) {
     const results = session.ket_qua || {};
+    const correctCount = Object.values(results).filter((r: any) => r.isCorrect).length;
     
     return (
       <div className="space-y-6 select-none pb-24">
@@ -116,9 +117,15 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
           <h2 className="text-2xl font-bold mb-2">Đã nộp bài</h2>
           <p className="text-gray-600 mb-6">Kỳ thi: <span className="font-semibold text-gray-900">{kyThi.ten_ky_thi}</span></p>
           
-          <div className="bg-gray-50 rounded-lg p-6 max-w-sm mx-auto flex items-center justify-center gap-4">
-            <span className="text-xl font-medium">Điểm số:</span>
-            <span className="text-4xl font-black text-primary">{session.diem_so} / 10</span>
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <div className="bg-gray-50 rounded-lg p-6 max-w-sm w-full mx-auto flex flex-col items-center justify-center gap-2">
+              <span className="text-gray-500 font-medium">Số câu đúng</span>
+              <span className="text-2xl font-bold text-gray-800">{correctCount} / {questions.length}</span>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-6 max-w-sm w-full mx-auto flex flex-col items-center justify-center gap-2">
+              <span className="text-gray-500 font-medium">Điểm số</span>
+              <span className="text-4xl font-black text-primary">{session.diem_so} / 10</span>
+            </div>
           </div>
 
           <div className="mt-8">
