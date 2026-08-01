@@ -49,10 +49,10 @@ export async function upsertKyThi(id: string | null, formData: FormData) {
   if (phan_loai_cau_hoi.length === 0) phan_loai_cau_hoi = [3]; // Default
 
   const tgbd = formData.get('thoi_gian_bat_dau') as string;
-  const thoi_gian_bat_dau = tgbd ? new Date(tgbd).toISOString() : null;
+  const thoi_gian_bat_dau = tgbd ? new Date(tgbd + '+07:00').toISOString() : null;
 
   const tgkt = formData.get('thoi_gian_ket_thuc') as string;
-  const thoi_gian_ket_thuc = tgkt ? new Date(tgkt).toISOString() : null;
+  const thoi_gian_ket_thuc = tgkt ? new Date(tgkt + '+07:00').toISOString() : null;
 
   const doi_tuong_thi_type = formData.get('doi_tuong_thi_type') as string;
   let doi_tuong_thi: any = { type: 'all' };
