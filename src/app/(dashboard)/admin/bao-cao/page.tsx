@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { Users, FileText, CheckCircle, MessageSquare } from 'lucide-react';
+import { Users, FileText, CheckCircle, MessageSquare, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function AdminBaoCaoPage() {
   const supabase = await createClient();
@@ -67,6 +68,12 @@ export default async function AdminBaoCaoPage() {
             </div>
           );
         })}
+      </div>
+
+      <div className="flex justify-end">
+        <Link href="/admin/hoc-vien" className="text-primary hover:text-primary/80 font-medium text-sm flex items-center gap-1 transition-colors">
+          Xem danh sách học viên đầy đủ <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

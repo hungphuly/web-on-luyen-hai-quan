@@ -147,6 +147,13 @@ export const MENU_CONFIG: MenuGroup[] = [
         requiresAdmin: true,
       },
       {
+        title: 'Học viên',
+        href: '/admin/hoc-vien',
+        icon: 'users',
+        requiresAuth: true,
+        requiresAdmin: true,
+      },
+      {
         title: 'Báo cáo',
         href: '/admin/bao-cao',
         icon: 'bar-chart-2',
