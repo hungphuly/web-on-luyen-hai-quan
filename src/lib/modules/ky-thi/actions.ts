@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/shared/utils/supabase/server';
+import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { KyThi, KyThiPhienLamBai } from './types';
 
@@ -137,35 +137,49 @@ export async function submitKyThi(kyThiId: string) {
   const { data: kyThi } = await supabase.from('ky_thi').select('so_luong_cau_hoi').eq('id', kyThiId).single();
   if (!kyThi) return { error: 'KyThi not found' };
 
-  // Grade the exam
-  // We need to fetch the real answers from the DB
+  // Grade the exam: Fetch real answers via Admin client (bypass RLS)
+  const supabaseAdmin = await createAdminClient();
   const questionIds = (session.danh_sach_cau_hoi as any[]).map(q => q.id);
-  const { data: dbQuestions } = await supabase
+  const { data: dbQuestions, error: dbError } = await supabaseAdmin
     .from('cau_hoi')
     .select('id, dap_an_dung')
     .in('id', questionIds);
 
-  const answerMap = new Map(dbQuestions?.map(q => [q.id, q.dap_an_dung]));
+  if (dbError || !dbQuestions) {
+    console.error('Lỗi khi lấy đáp án câu hỏi để chấm thi:', dbError);
+    return { error: 'Lỗi khi chấm điểm: ' + (dbError?.message || '') };
+  }
+
+  const answerMap = new Map(
+    dbQuestions.map(q => [q.id, q.dap_an_dung ? String(q.dap_an_dung).trim().toLowerCase() : ''])
+  );
   const bai_lam = session.bai_lam_tam_thoi || {};
 
   let soCauDung = 0;
-  const ket_qua_chi_tiet: any = {}; // map of id => { selected, isCorrect } (do NOT send correct answer)
+  const ket_qua_chi_tiet: Record<string, { selected: string | null; isCorrect: boolean }> = {};
 
   (session.danh_sach_cau_hoi as any[]).forEach(q => {
-    const selected = bai_lam[q.id];
+    const rawSelected = bai_lam[q.id];
+    const selected = rawSelected ? String(rawSelected).trim().toLowerCase() : null;
     const correct = answerMap.get(q.id);
-    const isCorrect = selected === correct;
+
+    // CHẤM ĐIỂM CHẶT CHẼ:
+    // 1. Phải có lựa chọn từ học viên (không được null/undefined/rỗng)
+    // 2. Phải tìm thấy đáp án đúng từ DB
+    // 3. Khớp chính xác giá trị
+    const isCorrect = Boolean(selected && correct && selected === correct);
     if (isCorrect) soCauDung++;
     
     ket_qua_chi_tiet[q.id] = {
-      selected: selected || null,
+      selected: rawSelected || null,
       isCorrect
     };
   });
 
-  const diem_so = parseFloat(((soCauDung / kyThi.so_luong_cau_hoi) * 10).toFixed(2));
+  const tongSoCau = kyThi.so_luong_cau_hoi || (session.danh_sach_cau_hoi as any[]).length || 30;
+  const diem_so = parseFloat(((soCauDung / tongSoCau) * 10).toFixed(2));
 
-  await supabase
+  await supabaseAdmin
     .from('ky_thi_phien_lam_bai')
     .update({
       trang_thai: 'da_nop',

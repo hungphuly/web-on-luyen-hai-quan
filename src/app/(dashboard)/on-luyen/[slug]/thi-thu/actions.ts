@@ -43,9 +43,12 @@ export async function nopBaiThiThu(
       const cauHoiDB = cauHoiList.find(db => db.id === c.cauHoiId);
       if (!cauHoiDB) throw new Error('Không tìm thấy câu hỏi ID: ' + c.cauHoiId);
 
-      const isDung = c.luaChon 
-        ? cauHoiDB.dap_an_dung.toLowerCase() === c.luaChon.toLowerCase()
-        : false;
+      const rawSelected = c.luaChon;
+      const selected = rawSelected ? String(rawSelected).trim().toLowerCase() : null;
+      const correct = cauHoiDB.dap_an_dung ? String(cauHoiDB.dap_an_dung).trim().toLowerCase() : null;
+
+      // CHẤM ĐIỂM CHẶT CHẼ: Phải có lựa chọn VÀ khớp chính xác đáp án DB
+      const isDung = Boolean(selected && correct && selected === correct);
 
       if (isDung) soCauDung++;
 
@@ -53,8 +56,8 @@ export async function nopBaiThiThu(
         cau_hoi_id: c.cauHoiId,
         noi_dung: c.noiDung,
         cac_lua_chon: c.cacLuaChon,
-        lua_chon_da_chon: c.luaChon ? c.luaChon.toLowerCase() : null,
-        dap_an_dung: cauHoiDB.dap_an_dung.toUpperCase(),
+        lua_chon_da_chon: selected,
+        dap_an_dung: cauHoiDB.dap_an_dung ? cauHoiDB.dap_an_dung.toUpperCase() : '',
         giai_thich_chi_tiet: cauHoiDB.giai_thich_chi_tiet,
         can_cu_phap_ly: cauHoiDB.can_cu_phap_ly,
         dung: isDung
