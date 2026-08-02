@@ -7,6 +7,8 @@ import { getPublicStats } from '@/lib/modules/trang-chu/services/trang-chu.servi
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 
+import { AICoachCard } from './components/AICoachCard'
+
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -133,99 +135,104 @@ export default async function HomePage() {
           </div>
         </div>
       ) : (
-        <div className="mt-8 space-y-4">
-          <h2 className="text-xl font-bold text-gray-900 px-2 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" /> Tiến độ cá nhân
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Flashcard Due */}
-            <div className="bg-white rounded-2xl border p-6 shadow-sm flex flex-col items-start gap-4 hover:border-primary/50 transition-colors">
-              <div className="w-full flex justify-between items-start">
-                <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl relative">
-                  <Flame className="w-6 h-6" />
-                  {totalDueCards > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
+        <div className="mt-8 space-y-6">
+          {/* AI Coach Card */}
+          <AICoachCard userId={user.id} />
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 px-2 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" /> Tiến độ cá nhân
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Flashcard Due */}
+              <div className="bg-white rounded-2xl border p-6 shadow-sm flex flex-col items-start gap-4 hover:border-primary/50 transition-colors">
+                <div className="w-full flex justify-between items-start">
+                  <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl relative">
+                    <Flame className="w-6 h-6" />
+                    {totalDueCards > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <h3 className="font-bold text-lg text-gray-900">Ôn tập Flashcards</h3>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {totalDueCards > 0 
+                      ? <span>Bạn có <strong className="text-red-600">{totalDueCards}</strong> thẻ cần ôn tập hôm nay.</span>
+                      : `Tuyệt vời! Bạn đã học hết bài của hôm nay.`}
+                  </p>
+                </div>
+                <Link href="/flashcards" className="mt-auto pt-4 w-full">
+                  <Button className="w-full justify-between" variant={totalDueCards > 0 ? 'default' : 'outline'}>
+                    {totalDueCards > 0 ? 'Học ngay' : 'Xem danh sách thẻ'}
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Lý thuyết đã học */}
+              <div className="bg-white rounded-2xl border p-6 shadow-sm flex flex-col items-start gap-4 hover:border-primary/50 transition-colors">
+                <div className="p-3 bg-blue-500/10 text-blue-600 rounded-xl">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div className="mt-2 w-full">
+                  <h3 className="font-bold text-lg text-gray-900">Tiến độ bài giảng</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-3xl font-black text-gray-900">{lyThuyetDaHoc}</span>
+                    <span className="text-muted-foreground text-sm">/ {publicStats.lyThuyetCount} lý thuyết</span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-100 rounded-full h-2 mt-4">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-1000" 
+                      style={{ width: `${Math.min(100, publicStats.lyThuyetCount > 0 ? (lyThuyetDaHoc / publicStats.lyThuyetCount) * 100 : 0)}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <Link href="/bai-giang" className="mt-auto pt-4 w-full">
+                  <Button className="w-full justify-between" variant="outline">
+                    Tiếp tục học
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Thi thử gần nhất */}
+              <div className="bg-white rounded-2xl border p-6 shadow-sm flex flex-col items-start gap-4 hover:border-primary/50 transition-colors">
+                <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div className="mt-2 w-full">
+                  <h3 className="font-bold text-lg text-gray-900">Thi thử gần nhất</h3>
+                  {ketQuaThiThu ? (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-3xl font-black text-gray-900">
+                        {ketQuaThiThu.diem_so} <span className="text-base font-normal text-muted-foreground">điểm</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-1 truncate" title={ketQuaThiThu.chuyen_de?.ten || ''}>
+                        {ketQuaThiThu.chuyen_de?.ten || 'Bài thi tổng hợp'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {format(new Date(ketQuaThiThu.ngay_thi), 'dd MMMM yyyy', { locale: vi })}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground mt-1 text-sm">Bạn chưa làm bài thi thử nào.</p>
                   )}
                 </div>
+                <Link href="/on-luyen" className="mt-auto pt-4 w-full">
+                  <Button className="w-full justify-between" variant={ketQuaThiThu ? "outline" : "default"}>
+                    Thi thử ngay
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
               </div>
-              <div className="mt-2">
-                <h3 className="font-bold text-lg text-gray-900">Ôn tập Flashcards</h3>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {totalDueCards > 0 
-                    ? <span>Bạn có <strong className="text-red-600">{totalDueCards}</strong> thẻ cần ôn tập hôm nay.</span>
-                    : `Tuyệt vời! Bạn đã học hết bài của hôm nay.`}
-                </p>
-              </div>
-              <Link href="/flashcards" className="mt-auto pt-4 w-full">
-                <Button className="w-full justify-between" variant={totalDueCards > 0 ? 'default' : 'outline'}>
-                  {totalDueCards > 0 ? 'Học ngay' : 'Xem danh sách thẻ'}
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
 
-            {/* Lý thuyết đã học */}
-            <div className="bg-white rounded-2xl border p-6 shadow-sm flex flex-col items-start gap-4 hover:border-primary/50 transition-colors">
-              <div className="p-3 bg-blue-500/10 text-blue-600 rounded-xl">
-                <BookOpen className="w-6 h-6" />
-              </div>
-              <div className="mt-2 w-full">
-                <h3 className="font-bold text-lg text-gray-900">Tiến độ bài giảng</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-3xl font-black text-gray-900">{lyThuyetDaHoc}</span>
-                  <span className="text-muted-foreground text-sm">/ {publicStats.lyThuyetCount} lý thuyết</span>
-                </div>
-                
-                <div className="w-full bg-gray-100 rounded-full h-2 mt-4">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-1000" 
-                    style={{ width: `${Math.min(100, publicStats.lyThuyetCount > 0 ? (lyThuyetDaHoc / publicStats.lyThuyetCount) * 100 : 0)}%` }}
-                  ></div>
-                </div>
-              </div>
-              <Link href="/bai-giang" className="mt-auto pt-4 w-full">
-                <Button className="w-full justify-between" variant="outline">
-                  Tiếp tục học
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </Link>
             </div>
-
-            {/* Thi thử gần nhất */}
-            <div className="bg-white rounded-2xl border p-6 shadow-sm flex flex-col items-start gap-4 hover:border-primary/50 transition-colors">
-              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div className="mt-2 w-full">
-                <h3 className="font-bold text-lg text-gray-900">Thi thử gần nhất</h3>
-                {ketQuaThiThu ? (
-                  <div className="mt-2 space-y-1">
-                    <p className="text-3xl font-black text-gray-900">
-                      {ketQuaThiThu.diem_so} <span className="text-base font-normal text-muted-foreground">điểm</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground line-clamp-1 truncate" title={ketQuaThiThu.chuyen_de?.ten || ''}>
-                      {ketQuaThiThu.chuyen_de?.ten || 'Bài thi tổng hợp'}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {format(new Date(ketQuaThiThu.ngay_thi), 'dd MMMM yyyy', { locale: vi })}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground mt-1 text-sm">Bạn chưa làm bài thi thử nào.</p>
-                )}
-              </div>
-              <Link href="/on-luyen" className="mt-auto pt-4 w-full">
-                <Button className="w-full justify-between" variant={ketQuaThiThu ? "outline" : "default"}>
-                  Thi thử ngay
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-
           </div>
         </div>
       )}
