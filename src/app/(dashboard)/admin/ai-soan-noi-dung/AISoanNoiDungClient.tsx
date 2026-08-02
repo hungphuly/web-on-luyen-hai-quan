@@ -48,7 +48,7 @@ export function AISoanNoiDungClient({
   // Form State
   const [selectedChuyenDe, setSelectedChuyenDe] = useState<string>(chuyenDeList[0]?.id || '');
   const [sourceType, setSourceType] = useState<'r2' | 'upload'>('r2');
-  const [selectedR2File, setSelectedR2File] = useState<string>(taiLieuList[0]?.duong_dan_file || '');
+  const [selectedR2File, setSelectedR2File] = useState<string>(taiLieuList[0]?.file_url || '');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [loaiNoiDung, setLoaiNoiDung] = useState<'cau_hoi' | 'flashcard' | 'ca_hai'>('ca_hai');
   const [soLuongCauHoi, setSoLuongCauHoi] = useState<number>(5);
@@ -374,7 +374,7 @@ export function AISoanNoiDungClient({
                     className="w-full border rounded-xl p-3 bg-white text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                   >
                     {taiLieuList.map((tl) => (
-                      <option key={tl.id} value={tl.duong_dan_file}>
+                      <option key={tl.id} value={tl.file_url}>
                         {tl.ten_van_ban} ({tl.so_hieu || 'Không có số hiệu'})
                       </option>
                     ))}
@@ -392,7 +392,7 @@ export function AISoanNoiDungClient({
                     className="w-full border rounded-xl p-2.5 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                   />
                   <p className="text-xs text-gray-500 mt-1.5">
-                    Hỗ trợ file định dạng PDF văn bản pháp luật, tài liệu nghiệp vụ (tối đa 20MB).
+                    Hỗ trợ file định dạng PDF văn bản pháp luật, tài liệu nghiệp vụ (tối đa 50MB).
                   </p>
                 </div>
               )}

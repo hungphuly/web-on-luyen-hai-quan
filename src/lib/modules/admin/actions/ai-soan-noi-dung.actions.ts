@@ -78,8 +78,11 @@ export async function sinhNoiDungTuPDF(params: SinhNoiDungParams) {
     if (fileBufferBase64) {
       const buffer = Buffer.from(fileBufferBase64, 'base64');
       pdfBlob = new Blob([buffer], { type: 'application/pdf' });
+      console.log('>>> [AI Soạn Nội Dung] Đã nhận file trực tiếp từ upload, kích thước:', pdfBlob.size, 'bytes');
     } else if (nguonFile) {
+      console.log('>>> [AI Soạn Nội Dung] Đang lấy file từ Cloudflare R2 với Key:', nguonFile);
       pdfBlob = await getFileBlobFromR2(nguonFile);
+      console.log('>>> [AI Soạn Nội Dung] Lấy file từ R2 thành công, kích thước:', pdfBlob.size, 'bytes');
     } else {
       return { success: false, message: 'Không tìm thấy nguồn file PDF.' };
     }
