@@ -2,6 +2,7 @@
 
 import { searchContext } from '@/lib/modules/ai-assistant/services/ai.service';
 import { createClient, createAdminClient } from '@/lib/shared/utils/supabase/server';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 export async function getAILuotHoiConLai() {
   const supabase = await createClient();
@@ -35,18 +36,19 @@ export async function getAILuotHoiConLai() {
 }
 
 export async function hoiTroLyAI(cauHoi: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  
-  if (!apiKey) {
-    return "Hệ thống chưa được cấu hình API Key cho Trợ lý AI.";
-  }
-
   const limitInfo = await getAILuotHoiConLai();
   if (limitInfo && !limitInfo.unlimited && limitInfo.remaining !== undefined && limitInfo.remaining <= 0) {
     return "Bạn đã dùng hết 10/10 lượt hỏi AI hôm nay. Vui lòng quay lại vào ngày mai!";
   }
 
   try {
+    const { env } = await getCloudflareContext({ async: true });
+    const ai = (env as any)?.AI;
+
+    if (!ai) {
+      return "Tính năng Trợ lý AI chỉ khả dụng khi chạy trên môi trường Cloudflare Workers.";
+    }
+
     // 1. Tìm kiếm context trong DB
     const context = await searchContext(cauHoi);
     
@@ -68,40 +70,19 @@ NGUYÊN TẮC BẮT BUỘC:
 4. Luôn trích dẫn nguồn (VD: [Bài giảng: ...], hoặc Căn cứ pháp lý) ở cuối câu trả lời nếu bạn tìm thấy thông tin trong ngữ cảnh.
 `;
 
-    // 3. Gọi Gemini API (v1beta REST API)
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: [{
-            role: 'user',
-            parts: [{ text: cauHoi }]
-          }],
-          generationConfig: {
-            temperature: 0.1, // Giữ temperature thấp để AI bám sát context, không sáng tạo
-          }
-        })
-      }
-    );
+    // 3. Gọi Cloudflare Workers AI (@cf/meta/llama-3.3-70b-instruct-fp8-fast)
+    const aiResponse = await ai.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: cauHoi }
+      ],
+      temperature: 0.1,
+      max_tokens: 1500
+    });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('Gemini API Error:', errText);
-      return "Xin lỗi, đã xảy ra lỗi khi kết nối với Trợ lý AI.";
-    }
+    const responseText = aiResponse?.response || (typeof aiResponse === 'string' ? aiResponse : '');
 
-    const data = await response.json();
-    
-    if (data.candidates && data.candidates.length > 0) {
-      const responseText = data.candidates[0].content.parts[0].text;
-      
+    if (responseText) {
       // Nếu thành công, insert lịch sử
       if (limitInfo && !limitInfo.unlimited) {
         const supabaseAdmin = await createAdminClient();
@@ -119,6 +100,6 @@ NGUYÊN TẮC BẮT BUỘC:
     
   } catch (error) {
     console.error('Lỗi hỏi AI:', error);
-    return "Xin lỗi, có lỗi hệ thống xảy ra.";
+    return "Xin lỗi, đã xảy ra lỗi khi kết nối với Trợ lý AI.";
   }
 }

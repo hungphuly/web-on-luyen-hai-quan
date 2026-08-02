@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
 if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
   console.warn('Thiếu cấu hình R2. Vui lòng thêm R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY vào file .env.local');
@@ -50,4 +50,26 @@ export async function uploadToR2(fileBuffer: Uint8Array | Buffer, fileName: stri
   const client = await getR2Client();
   await client.send(command);
   return fileName;
+}
+
+/**
+ * Lấy file từ Cloudflare R2 dưới dạng Blob
+ * @param fileName Tên file / fileKey trên R2
+ * @returns Blob của file
+ */
+export async function getFileBlobFromR2(fileName: string): Promise<Blob> {
+  const command = new GetObjectCommand({
+    Bucket: getR2BucketName(),
+    Key: fileName,
+  });
+
+  const client = await getR2Client();
+  const response = await client.send(command);
+
+  if (!response.Body) {
+    throw new Error(`Không tìm thấy file ${fileName} trên R2`);
+  }
+
+  const byteArray = await response.Body.transformToByteArray();
+  return new Blob([byteArray.buffer as ArrayBuffer], { type: response.ContentType || 'application/pdf' });
 }

@@ -7,6 +7,9 @@ main = ".open-next/worker.js"
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[ai]
+binding = "AI"
+
 [vars]
 R2_ACCOUNT_ID = "f0a212af83e59da75bb0e5a2f0ac029d"
 R2_ACCESS_KEY_ID = "fa08b1c595678f1c352b65ed82c37ff4"
