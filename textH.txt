@@ -1,7 +1,0 @@
-supabase setting
-Protect ID : fohikurcqgvyoxldbiib
-NEXT_PUBLIC_SUPABASE_URL : https://fohikurcqgvyoxldbiib.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY : 
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvaGlrdXJjcWd2eW94bGRiaWliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzU3MTgsImV4cCI6MjA5OTA1MTcxOH0.Rg6CE07Y2_2jM3m34eg9kCKnQo8Kvumm4yZd1BsfD7U
-user.name "TTVT Admin"
-user.email "admin@ttvt.com
