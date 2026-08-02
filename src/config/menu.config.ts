@@ -135,12 +135,6 @@ export const MENU_CONFIG: MenuGroup[] = [
         requiresAdmin: true,
       },
       {
-        title: 'AI soạn nội dung',
-        href: '/admin/ai-soan-noi-dung',
-        icon: 'sparkles',
-        requiresAdmin: true,
-      },
-      {
         title: 'Quản lý kỳ thi thật',
         href: '/admin/ky-thi',
         icon: 'file-check-2',
