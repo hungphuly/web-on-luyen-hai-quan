@@ -112,31 +112,31 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
     
     return (
       <div className="space-y-6 select-none pb-24">
-        <div className="bg-white p-8 rounded-xl shadow-sm text-center border-t-4 border-t-primary">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Đã nộp bài</h2>
-          <p className="text-gray-600 mb-6">Kỳ thi: <span className="font-semibold text-gray-900">{kyThi.ten_ky_thi}</span></p>
+        <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm text-center border-t-4 border-t-primary">
+          <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4" />
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Đã nộp bài</h2>
+          <p className="text-sm sm:text-base text-gray-600 mb-6">Kỳ thi: <span className="font-semibold text-gray-900">{kyThi.ten_ky_thi}</span></p>
           
-          <div className="flex flex-col items-center gap-4 mb-6">
-            <div className="bg-gray-50 rounded-lg p-6 max-w-sm w-full mx-auto flex flex-col items-center justify-center gap-2">
-              <span className="text-gray-500 font-medium">Số câu đúng</span>
-              <span className="text-2xl font-bold text-gray-800">{correctCount} / {questions.length}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto mb-6">
+            <div className="bg-gray-50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center gap-1 border">
+              <span className="text-xs sm:text-sm text-gray-500 font-medium">Số câu đúng</span>
+              <span className="text-xl sm:text-2xl font-bold text-gray-800">{correctCount} / {questions.length}</span>
             </div>
-            <div className="bg-gray-50 rounded-lg p-6 max-w-sm w-full mx-auto flex flex-col items-center justify-center gap-2">
-              <span className="text-gray-500 font-medium">Điểm số</span>
-              <span className="text-4xl font-black text-primary">{session.diem_so} / 10</span>
+            <div className="bg-gray-50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center gap-1 border">
+              <span className="text-xs sm:text-sm text-gray-500 font-medium">Điểm số</span>
+              <span className="text-3xl sm:text-4xl font-black text-primary">{session.diem_so} / 10</span>
             </div>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <Link href="/ky-thi">
-              <Button>Quay lại danh sách</Button>
+              <Button className="rounded-xl font-bold">Quay lại danh sách</Button>
             </Link>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-bold mb-6 border-b pb-2">Chi tiết bài làm (Bảo mật đề thi: Không hiển thị đáp án đúng)</h3>
+        <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 border">
+          <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6 border-b pb-3 text-gray-900">Chi tiết bài làm (Bảo mật đề thi: Không hiển thị đáp án đúng)</h3>
           
           <div className="space-y-8">
             {questions.map((q, idx) => {
@@ -202,16 +202,56 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
 
   // Render mode: Taking Exam
   return (
-    <div className="flex gap-6 relative select-none">
-      <div className="flex-1 space-y-8 pb-24">
+    <div className="flex flex-col md:flex-row gap-6 relative select-none">
+      {/* Mobile Sticky Header Bar */}
+      <div className="md:hidden sticky top-14 -mx-4 -mt-4 mb-2 px-4 py-2.5 bg-white/95 backdrop-blur-md border-b shadow-sm z-20 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+            <span className="text-primary font-bold">{Object.keys(answers).length}</span>/{questions.length}
+          </span>
+          {autoSaveStatus === 'saving' && (
+            <span className="text-[11px] text-blue-500 flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+              <span className="hidden sm:inline">Lưu...</span>
+            </span>
+          )}
+          {autoSaveStatus === 'saved' && (
+            <span className="text-[11px] text-green-600 flex items-center gap-1">
+              <CheckCircle className="w-3 h-3 shrink-0" />
+              <span className="hidden sm:inline">Đã lưu</span>
+            </span>
+          )}
+        </div>
+
+        <div className={cn(
+          "flex items-center gap-1.5 font-mono text-base font-bold px-3 py-1 rounded-full shrink-0",
+          timeLeft < 300000 ? "bg-red-100 text-red-600 animate-pulse" : "bg-primary/10 text-primary"
+        )}>
+          <Clock className="w-4 h-4 shrink-0" />
+          {formatTime(timeLeft)}
+        </div>
+
+        <Button 
+          size="sm"
+          className="h-8 px-3 text-xs font-bold shrink-0 bg-primary hover:bg-primary/90 text-white rounded-lg shadow-xs"
+          onClick={() => setShowConfirm(true)}
+        >
+          Nộp bài
+        </Button>
+      </div>
+
+      {/* Main question list */}
+      <div className="flex-1 min-w-0 space-y-6 pb-6 md:pb-24">
         {questions.map((q, idx) => (
-          <div key={q.id} id={`q-${idx}`} className="bg-white p-6 rounded-xl shadow-sm border">
-            <h3 className="font-bold text-lg mb-4 text-gray-900 flex gap-2">
-              <span className="shrink-0 text-primary">Câu {idx + 1}.</span>
-              <span dangerouslySetInnerHTML={{ __html: q.noi_dung.replace(/\n/g, '<br/>') }} />
+          <div key={q.id} id={`q-${idx}`} className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border scroll-mt-32">
+            <h3 className="font-bold text-base sm:text-lg mb-4 text-gray-900 flex gap-2.5 items-start">
+              <span className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-bold mt-0.5">
+                {idx + 1}
+              </span>
+              <span className="flex-1 leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.noi_dung.replace(/\n/g, '<br/>') }} />
             </h3>
             
-            <div className="grid grid-cols-1 gap-3 ml-8">
+            <div className="space-y-2.5 sm:space-y-3 pl-0 sm:pl-10">
               {['a', 'b', 'c', 'd'].map(key => {
                 const val = q.cac_lua_chon[key];
                 if (!val) return null;
@@ -221,8 +261,8 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
                   <label 
                     key={key} 
                     className={cn(
-                      "flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-all hover:bg-gray-50",
-                      isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200"
+                      "flex items-start gap-3 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all hover:bg-gray-50/80",
+                      isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-gray-200"
                     )}
                   >
                     <input 
@@ -231,11 +271,18 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
                       value={key}
                       checked={isSelected}
                       onChange={() => handleSelect(q.id, key)}
-                      className="mt-1"
+                      className="sr-only"
                     />
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-sm mb-1 uppercase text-gray-500">Lựa chọn {key}</span>
-                      <span className={cn("text-gray-800", isSelected && "font-medium text-primary")}>{val}</span>
+                    <div className={cn(
+                      "w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center font-bold text-xs mt-0.5 transition-colors",
+                      isSelected ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-500 group-hover:border-primary/50"
+                    )}>
+                      {key.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <span className={cn("text-sm sm:text-base leading-relaxed break-words", isSelected ? "font-medium text-gray-900" : "text-gray-700")}>
+                        {val}
+                      </span>
                     </div>
                   </label>
                 );
@@ -243,25 +290,77 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
             </div>
           </div>
         ))}
+
+        {/* Mobile Question List Grid & Bottom Submit Button */}
+        <div className="block md:hidden bg-white rounded-xl shadow-sm border p-4 sm:p-6 space-y-5">
+          <div className="flex items-center justify-between border-b pb-3">
+            <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-primary" />
+              Danh sách câu hỏi
+            </h3>
+            <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+              {Object.keys(answers).length}/{questions.length} đã làm
+            </span>
+          </div>
+
+          <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
+            {questions.map((q, idx) => {
+              const isAnswered = !!answers[q.id];
+              return (
+                <a 
+                  key={q.id} 
+                  href={`#q-${idx}`}
+                  className={cn(
+                    "flex items-center justify-center w-full aspect-square rounded-lg text-xs sm:text-sm font-bold border transition-colors",
+                    isAnswered ? "bg-primary text-white border-primary shadow-xs" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                  )}
+                >
+                  {idx + 1}
+                </a>
+              );
+            })}
+          </div>
+
+          <div className="pt-2 border-t space-y-3">
+            <div className="flex justify-between items-center text-xs text-gray-500">
+              <span>Tự động lưu bài làm</span>
+              {autoSaveStatus === 'saving' && <span className="text-blue-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Đang lưu...</span>}
+              {autoSaveStatus === 'saved' && <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Đã lưu nháp</span>}
+              {autoSaveStatus === 'idle' && <span className="text-gray-400">Đã đồng bộ</span>}
+            </div>
+
+            <Button 
+              className="w-full h-12 text-base font-bold shadow-md bg-primary hover:bg-primary/90 text-white rounded-xl" 
+              onClick={() => setShowConfirm(true)}
+            >
+              NỘP BÀI THI
+            </Button>
+          </div>
+        </div>
       </div>
       
-      {/* Sidebar navigation */}
-      <div className="w-80 shrink-0">
-        <div className="sticky top-24 bg-white rounded-xl shadow-md border p-6 flex flex-col h-[calc(100vh-8rem)]">
+      {/* Desktop Sidebar navigation */}
+      <div className="hidden md:block md:w-80 md:shrink-0">
+        <div className="sticky top-20 bg-white rounded-xl shadow-md border p-6 flex flex-col h-[calc(100vh-6rem)]">
           
           <div className="text-center mb-6 border-b pb-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Thời gian còn lại</h2>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Thời gian còn lại</h2>
             <div className={cn(
-              "text-4xl font-black font-mono flex items-center justify-center gap-2",
+              "text-3xl lg:text-4xl font-black font-mono flex items-center justify-center gap-2",
               timeLeft < 300000 ? "text-red-600 animate-pulse" : "text-primary"
             )}>
-              <Clock className="w-6 h-6" />
+              <Clock className="w-7 h-7" />
               {formatTime(timeLeft)}
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto min-h-0 mb-6 pr-2">
-            <h3 className="text-sm font-bold text-gray-700 mb-3">Danh sách câu hỏi</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-gray-700">Danh sách câu hỏi</h3>
+              <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                {Object.keys(answers).length}/{questions.length}
+              </span>
+            </div>
             <div className="grid grid-cols-5 gap-2">
               {questions.map((q, idx) => {
                 const isAnswered = !!answers[q.id];
@@ -270,28 +369,27 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
                     key={q.id} 
                     href={`#q-${idx}`}
                     className={cn(
-                      "flex items-center justify-center w-full aspect-square rounded-md text-sm font-bold border transition-colors",
-                      isAnswered ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+                      "flex items-center justify-center w-full aspect-square rounded-lg text-sm font-bold border transition-colors",
+                      isAnswered ? "bg-primary text-white border-primary shadow-xs" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                   >
                     {idx + 1}
                   </a>
-                )
+                );
               })}
             </div>
           </div>
 
-          <div className="shrink-0 flex flex-col gap-3">
-            <div className="flex justify-between items-center text-sm font-medium">
-              <span className="text-gray-500">Đã làm:</span>
-              <span className="text-primary">{Object.keys(answers).length} / {questions.length}</span>
+          <div className="shrink-0 flex flex-col gap-3 pt-3 border-t">
+            <div className="flex justify-between items-center text-xs font-medium">
+              <span className="text-gray-500">Trạng thái:</span>
+              {autoSaveStatus === 'saving' && <span className="text-blue-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Đang lưu...</span>}
+              {autoSaveStatus === 'saved' && <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Đã lưu nháp</span>}
+              {autoSaveStatus === 'idle' && <span className="text-gray-400">Đã đồng bộ</span>}
             </div>
-            
-            {autoSaveStatus === 'saving' && <span className="text-xs text-blue-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Đang lưu...</span>}
-            {autoSaveStatus === 'saved' && <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Đã lưu nháp</span>}
 
             <Button 
-              className="w-full h-12 text-lg font-bold shadow-lg" 
+              className="w-full h-12 text-base font-bold shadow-md bg-primary hover:bg-primary/90 text-white rounded-xl" 
               onClick={() => setShowConfirm(true)}
             >
               NỘP BÀI
