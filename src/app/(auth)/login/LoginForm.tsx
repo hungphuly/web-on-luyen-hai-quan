@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 
-export default function LoginForm({ errorParam }: { errorParam?: string }) {
+export default function LoginForm({ errorParam, messageParam }: { errorParam?: string, messageParam?: string }) {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(errorParam)
+  const [message, setMessage] = useState(messageParam)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -33,6 +34,11 @@ export default function LoginForm({ errorParam }: { errorParam?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16">
+      {message && (
+        <div className="rounded-lg bg-green-50 p-3 text-xs text-green-800 border border-green-200">
+          {message}
+        </div>
+      )}
       <div>
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" placeholder="user@example.com" required className="mt-1" />
@@ -63,7 +69,9 @@ export default function LoginForm({ errorParam }: { errorParam?: string }) {
       </div>
       
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <div className="rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200">
+          {error}
+        </div>
       )}
 
       <Button type="submit" disabled={isLoading}>

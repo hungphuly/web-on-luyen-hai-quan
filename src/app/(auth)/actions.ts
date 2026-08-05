@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/shared/utils/supabase/server'
 
 export async function login(formData: FormData) {
@@ -60,17 +61,21 @@ export async function resetPassword(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
   
-  // Note: Since this is executed on the server, headers().get('origin') could be used to construct the URL,
-  // but we can just use the path relative to the site url configured in Supabase.
+  // Resolve base URL dynamically from request headers
+  const headerList = await headers()
+  const host = headerList.get('x-forwarded-host') || headerList.get('host')
+  const proto = headerList.get('x-forwarded-proto') || (process.env.NODE_ENV === 'production' ? 'https' : 'http')
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${proto}://${host}` : 'https://web-on-luyen-hai-quan.tayho.workers.dev')
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/reset-password`,
+    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
   })
 
   if (error) {
     redirect('/quen-mat-khau?error=' + encodeURIComponent(error.message))
   }
 
-  redirect('/quen-mat-khau?message=' + encodeURIComponent('Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn.'))
+  redirect('/quen-mat-khau?message=' + encodeURIComponent('Đã gửi email hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư đến (hoặc thư mục Spam/Rác) của bạn.'))
 }
 
 export async function updatePassword(formData: FormData) {

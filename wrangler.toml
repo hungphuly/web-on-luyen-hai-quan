@@ -11,6 +11,7 @@ binding = "ASSETS"
 binding = "AI"
 
 [vars]
+NEXT_PUBLIC_SITE_URL = "https://web-on-luyen-hai-quan.tayho.workers.dev"
 R2_ACCOUNT_ID = "f0a212af83e59da75bb0e5a2f0ac029d"
 R2_ACCESS_KEY_ID = "fa08b1c595678f1c352b65ed82c37ff4"
 R2_BUCKET_NAME = "tai-lieu-hoc-tap"

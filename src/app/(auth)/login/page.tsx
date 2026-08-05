@@ -1,7 +1,7 @@
 import LoginForm from './LoginForm'
 import Link from 'next/link'
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string, message?: string }> }) {
   const params = await searchParams;
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <h3 className="text-xl font-semibold">Đăng nhập</h3>
           <p className="text-sm text-gray-500">Đăng nhập bằng tài khoản của bạn</p>
         </div>
-        <LoginForm errorParam={params?.error} />
+        <LoginForm errorParam={params?.error} messageParam={params?.message} />
       </div>
     </div>
   )
