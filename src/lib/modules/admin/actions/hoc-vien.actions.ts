@@ -268,6 +268,25 @@ export async function xoaHocVien(id: string) {
   }
 }
 
+export async function adminDoiMatKhauHocVien(userId: string, newPassword: string) {
+  await checkAdminAuth();
+  if (!newPassword || newPassword.length < 6) {
+    throw new Error('Mật khẩu mới phải có tối thiểu 6 ký tự');
+  }
+
+  const adminSupabase = await createAdminClient();
+  const { error } = await adminSupabase.auth.admin.updateUserById(userId, {
+    password: newPassword
+  });
+
+  if (error) {
+    console.error('Error updating user password:', error);
+    throw new Error(error.message || 'Không thể đổi mật khẩu cho học viên');
+  }
+
+  return { success: true };
+}
+
 export async function getHocVienReport(hoc_vien_id: string) {
   await checkAdminAuth();
   const adminSupabase = await createAdminClient();

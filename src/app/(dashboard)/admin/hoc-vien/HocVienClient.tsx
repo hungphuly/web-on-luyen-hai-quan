@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getDanhSachHocVien, getAllHocVienForExport, HocVienData } from '@/lib/modules/admin/actions/hoc-vien.actions';
+import { getDanhSachHocVien, getAllHocVienForExport, HocVienData, getHocVienReport, adminDoiMatKhauHocVien } from '@/lib/modules/admin/actions/hoc-vien.actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Download, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Download, ChevronLeft, ChevronRight, Loader2, KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, BookOpen, Target, FileSignature, Trophy, Calendar, Clock, Copy, Check } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { getHocVienReport } from '@/lib/modules/admin/actions/hoc-vien.actions';
-import { BookOpen, Target, FileSignature, Trophy, Calendar, Clock } from 'lucide-react';
 
 export function HocVienClient() {
   const [data, setData] = useState<HocVienData[]>([]);
@@ -26,6 +24,15 @@ export function HocVienClient() {
   const [reportUser, setReportUser] = useState<HocVienData | null>(null);
   const [reportData, setReportData] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
+
+  // Modal Reset Password state
+  const [resetUser, setResetUser] = useState<HocVienData | null>(null);
+  const [newPassword, setNewPassword] = useState('123456');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -73,6 +80,50 @@ export function HocVienClient() {
     } finally {
       setReportLoading(false);
     }
+  };
+
+  const handleOpenReset = (user: HocVienData) => {
+    setResetUser(user);
+    setNewPassword('123456');
+    setShowNewPassword(false);
+    setResetSuccess(false);
+    setResetError(null);
+    setCopied(false);
+  };
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789@#$';
+    let res = '';
+    for (let i = 0; i < 8; i++) {
+      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewPassword(res);
+  };
+
+  const handleConfirmReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetUser) return;
+    if (newPassword.length < 6) {
+      setResetError('Mật khẩu phải có tối thiểu 6 ký tự');
+      return;
+    }
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      await adminDoiMatKhauHocVien(resetUser.id, newPassword);
+      setResetSuccess(true);
+    } catch (err: any) {
+      setResetError(err.message || 'Đổi mật khẩu thất bại');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (!newPassword) return;
+    navigator.clipboard.writeText(newPassword);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const formatTimeAgo = (dateStr: string | null) => {
@@ -247,14 +298,26 @@ export function HocVienClient() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-primary border-primary/30 hover:bg-primary/10"
-                        onClick={() => handleOpenReport(hv)}
-                      >
-                        Xem tiến độ
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-primary border-primary/30 hover:bg-primary/10"
+                          onClick={() => handleOpenReport(hv)}
+                        >
+                          Xem tiến độ
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800"
+                          title="Đổi mật khẩu cho học viên"
+                          onClick={() => handleOpenReset(hv)}
+                        >
+                          <KeyRound className="w-4 h-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Đổi MK</span>
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -374,6 +437,136 @@ export function HocVienClient() {
               </div>
             ) : null}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Đổi mật khẩu học viên */}
+      <Dialog open={!!resetUser} onOpenChange={(open) => !open && setResetUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-[#1B4D3E]">
+              <KeyRound className="w-5 h-5 text-amber-600" />
+              Đổi mật khẩu học viên
+            </DialogTitle>
+            <DialogDescription>
+              Đặt trực tiếp mật khẩu mới cho học viên mà không cần thông qua email.
+            </DialogDescription>
+          </DialogHeader>
+
+          {resetUser && (
+            <div className="py-2 space-y-4">
+              <div className="bg-gray-50 p-3 rounded-lg border text-xs text-gray-600 space-y-1">
+                <div><b>Học viên:</b> {resetUser.ho_ten || 'Chưa cập nhật tên'}</div>
+                <div><b>Email:</b> <span className="font-mono text-gray-800">{resetUser.email}</span></div>
+              </div>
+
+              {resetSuccess ? (
+                <div className="rounded-xl bg-green-50 p-4 border border-green-200 text-center space-y-3">
+                  <div className="flex justify-center">
+                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <div className="text-sm font-semibold text-green-900">
+                    Đã đổi mật khẩu thành công!
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-green-200 text-xs flex items-center justify-between">
+                    <span className="text-gray-500">Mật khẩu mới:</span>
+                    <span className="font-mono font-bold text-base text-gray-900">{newPassword}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleCopyPassword}
+                      className="h-7 px-2 text-xs text-primary"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                      {copied ? 'Đã sao chép' : 'Sao chép'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Bạn có thể sao chép mật khẩu này gửi cho học viên để họ đăng nhập ngay.
+                  </p>
+                  <Button 
+                    className="w-full bg-[#1B4D3E] hover:bg-[#153e32] text-white" 
+                    onClick={() => setResetUser(null)}
+                  >
+                    Hoàn tất
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleConfirmReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-gray-700">Mật khẩu mới</label>
+                    <div className="relative">
+                      <Input 
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Tối thiểu 6 ký tự"
+                        minLength={6}
+                        required
+                        className="pr-10 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={() => setNewPassword('123456')}
+                      >
+                        Đặt 123456
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={generateRandomPassword}
+                      >
+                        Tạo ngẫu nhiên
+                      </Button>
+                    </div>
+                  </div>
+
+                  {resetError && (
+                    <div className="rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{resetError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setResetUser(null)}
+                      disabled={resetLoading}
+                    >
+                      Hủy
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-[#1B4D3E] hover:bg-[#153e32] text-white"
+                      disabled={resetLoading}
+                    >
+                      {resetLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <KeyRound className="w-4 h-4 mr-2" />}
+                      Lưu mật khẩu
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
