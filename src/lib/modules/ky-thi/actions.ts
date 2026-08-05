@@ -66,13 +66,13 @@ export async function getOrCreateKyThiSession(kyThiId: string) {
   const shuffled = allQuestions.sort(() => 0.5 - Math.random());
   const selected = shuffled.slice(0, kyThi.so_luong_cau_hoi);
 
-  // Remove correct answers from client payload for security
+  // Remove correct answers from client payload for security, include la_nhieu_dap_an
   const danh_sach_cau_hoi = selected.map(q => ({
     id: q.id,
     noi_dung: q.noi_dung,
     cac_lua_chon: q.cac_lua_chon,
-    chuyen_de_id: q.chuyen_de_id
-    // NOT including dap_an_dung
+    chuyen_de_id: q.chuyen_de_id,
+    la_nhieu_dap_an: Boolean(q.dap_an_dung?.includes(','))
   }));
 
   const { data: newSession, error: createError } = await supabase
@@ -92,7 +92,7 @@ export async function getOrCreateKyThiSession(kyThiId: string) {
   return { session: newSession as KyThiPhienLamBai, kyThi: kyThi as KyThi };
 }
 
-export async function saveKyThiAnswer(kyThiId: string, cauHoiId: string, answer: string) {
+export async function saveKyThiAnswer(kyThiId: string, cauHoiId: string, answer: string | string[]) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
@@ -108,7 +108,10 @@ export async function saveKyThiAnswer(kyThiId: string, cauHoiId: string, answer:
   if (!session || session.trang_thai === 'da_nop') return { error: 'Không thể lưu bài' };
 
   const bai_lam = session.bai_lam_tam_thoi || {};
-  bai_lam[cauHoiId] = answer;
+  const formattedAnswer = Array.isArray(answer)
+    ? answer.map((x: any) => String(x).trim().toLowerCase()).filter(Boolean).sort().join(',')
+    : (answer ? String(answer).trim().toLowerCase() : '');
+  bai_lam[cauHoiId] = formattedAnswer;
 
   await supabase
     .from('ky_thi_phien_lam_bai')
@@ -160,18 +163,24 @@ export async function submitKyThi(kyThiId: string) {
 
   (session.danh_sach_cau_hoi as any[]).forEach(q => {
     const rawSelected = bai_lam[q.id];
-    const selected = rawSelected ? String(rawSelected).trim().toLowerCase() : null;
-    const correct = answerMap.get(q.id);
+    const userAnswers = Array.isArray(rawSelected)
+      ? rawSelected.map((x: any) => String(x).trim().toLowerCase()).filter(Boolean).sort().join(',')
+      : (rawSelected ? String(rawSelected).trim().toLowerCase().split(',').map((x: string) => x.trim()).filter(Boolean).sort().join(',') : '');
+
+    const rawCorrect = answerMap.get(q.id) || '';
+    const dbAnswers = rawCorrect
+      ? String(rawCorrect).trim().toLowerCase().split(',').map((x: string) => x.trim()).filter(Boolean).sort().join(',')
+      : '';
 
     // CHẤM ĐIỂM CHẶT CHẼ:
     // 1. Phải có lựa chọn từ học viên (không được null/undefined/rỗng)
     // 2. Phải tìm thấy đáp án đúng từ DB
     // 3. Khớp chính xác giá trị
-    const isCorrect = Boolean(selected && correct && selected === correct);
+    const isCorrect = Boolean(userAnswers && dbAnswers && userAnswers === dbAnswers);
     if (isCorrect) soCauDung++;
     
     ket_qua_chi_tiet[q.id] = {
-      selected: rawSelected || null,
+      selected: userAnswers || null,
       isCorrect
     };
   });

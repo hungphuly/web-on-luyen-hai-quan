@@ -44,11 +44,16 @@ export async function nopBaiThiThu(
       if (!cauHoiDB) throw new Error('Không tìm thấy câu hỏi ID: ' + c.cauHoiId);
 
       const rawSelected = c.luaChon;
-      const selected = rawSelected ? String(rawSelected).trim().toLowerCase() : null;
-      const correct = cauHoiDB.dap_an_dung ? String(cauHoiDB.dap_an_dung).trim().toLowerCase() : null;
+      const userAnswers = Array.isArray(rawSelected)
+        ? rawSelected.map((x: any) => String(x).trim().toLowerCase()).filter(Boolean).sort().join(',')
+        : (rawSelected ? String(rawSelected).trim().toLowerCase().split(',').map((x: string) => x.trim()).filter(Boolean).sort().join(',') : '');
 
-      // CHẤM ĐIỂM CHẶT CHẼ: Phải có lựa chọn VÀ khớp chính xác đáp án DB
-      const isDung = Boolean(selected && correct && selected === correct);
+      const dbAnswers = cauHoiDB.dap_an_dung
+        ? String(cauHoiDB.dap_an_dung).trim().toLowerCase().split(',').map((x: string) => x.trim()).filter(Boolean).sort().join(',')
+        : '';
+
+      // CHẤM ĐIỂM CHẶT CHẼ: Phải có lựa chọn VÀ khớp chính xác đáp án DB (bỏ trống => 0 điểm)
+      const isDung = Boolean(userAnswers && dbAnswers && userAnswers === dbAnswers);
 
       if (isDung) soCauDung++;
 
@@ -56,10 +61,11 @@ export async function nopBaiThiThu(
         cau_hoi_id: c.cauHoiId,
         noi_dung: c.noiDung,
         cac_lua_chon: c.cacLuaChon,
-        lua_chon_da_chon: selected,
-        dap_an_dung: cauHoiDB.dap_an_dung ? cauHoiDB.dap_an_dung.toUpperCase() : '',
+        lua_chon_da_chon: userAnswers || null,
+        dap_an_dung: dbAnswers.toUpperCase().split(',').join(', '),
         giai_thich_chi_tiet: cauHoiDB.giai_thich_chi_tiet,
         can_cu_phap_ly: cauHoiDB.can_cu_phap_ly,
+        la_nhieu_dap_an: dbAnswers.includes(','),
         dung: isDung
       };
     });

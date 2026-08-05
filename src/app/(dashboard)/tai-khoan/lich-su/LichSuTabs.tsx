@@ -78,7 +78,9 @@ export function LichSuTabs({ lichSuOnLuyen, groupedThiThu, thiThuKeys }: any) {
                           Đáp án đúng: <span className="font-bold text-green-700">{c.dap_an_dung}</span>
                         </div>
                         <div className="text-sm text-gray-600">
-                          Bạn đã chọn: <span className={`font-bold ${c.dung ? 'text-green-700' : 'text-red-700'}`}>{c.lua_chon_da_chon?.toUpperCase() || 'Không chọn'}</span>
+                          Bạn đã chọn: <span className={`font-bold ${c.dung ? 'text-green-700' : 'text-red-700'}`}>
+                            {c.lua_chon_da_chon ? c.lua_chon_da_chon.toUpperCase().split(',').join(', ') : 'Không chọn'}
+                          </span>
                         </div>
                       </div>
                     ))}

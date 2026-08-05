@@ -142,19 +142,27 @@ export function CauHoiTableClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="dap_an_dung">Đáp án đúng</Label>
-                <select 
-                  id="dap_an_dung" 
-                  name="dap_an_dung" 
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  defaultValue={editingItem.dap_an_dung} 
-                  required
-                >
-                  <option value="a">A</option>
-                  <option value="b">B</option>
-                  <option value="c">C</option>
-                  <option value="d">D</option>
-                </select>
+                <Label>Đáp án đúng (có thể chọn 1 hoặc nhiều đáp án đúng)</Label>
+                <div className="flex flex-wrap gap-4 mt-1 p-3 bg-gray-50 rounded-lg border">
+                  {['a', 'b', 'c', 'd'].map(opt => {
+                    const currentAnswers = editingItem.dap_an_dung
+                      ? editingItem.dap_an_dung.toLowerCase().split(',').map(s => s.trim())
+                      : [];
+                    const isChecked = currentAnswers.includes(opt);
+                    return (
+                      <label key={opt} className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-800">
+                        <input 
+                          type="checkbox" 
+                          name="dap_an_dung" 
+                          value={opt} 
+                          defaultChecked={isChecked}
+                          className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                        />
+                        <span>Phương án {opt.toUpperCase()}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -237,7 +245,15 @@ export function CauHoiTableClient({
                     {ch.can_cu_phap_ly}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="font-bold text-lg text-primary uppercase">{ch.dap_an_dung}</span>
+                    {ch.dap_an_dung?.includes(',') ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                        {ch.dap_an_dung.toUpperCase().split(',').join(', ')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
+                        {ch.dap_an_dung?.toUpperCase()}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">

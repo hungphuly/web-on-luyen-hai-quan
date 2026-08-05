@@ -26,7 +26,24 @@ export async function chamDiemCauHoi(cauHoiId: string, luaChonDaChon: string, ph
       return { error: 'Lỗi khi lấy đáp án: ' + (fetchError?.message || 'Không tìm thấy câu hỏi') };
     }
 
-    const isDung = cauHoi.dap_an_dung.toLowerCase() === luaChonDaChon.toLowerCase();
+    // Chuẩn hóa và so khớp đáp án (hỗ trợ cả 1 hoặc nhiều đáp án dạng 'a,b')
+    const userNormalized = String(luaChonDaChon || '')
+      .toLowerCase()
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+      .sort()
+      .join(',');
+
+    const dbNormalized = String(cauHoi.dap_an_dung || '')
+      .toLowerCase()
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+      .sort()
+      .join(',');
+
+    const isDung = Boolean(userNormalized && dbNormalized && userNormalized === dbNormalized);
 
     // Cập nhật phiên ôn luyện (tăng số câu đã làm, số câu đúng)
     if (phienId && chuyenDeId) {
@@ -66,7 +83,7 @@ export async function chamDiemCauHoi(cauHoiId: string, luaChonDaChon: string, ph
 
     return {
       dung: isDung,
-      dap_an_dung: cauHoi.dap_an_dung.toUpperCase(),
+      dap_an_dung: cauHoi.dap_an_dung.toUpperCase().split(',').map((s: string) => s.trim()).join(', '),
       can_cu_phap_ly: cauHoi.can_cu_phap_ly
     };
   } catch (err: any) {

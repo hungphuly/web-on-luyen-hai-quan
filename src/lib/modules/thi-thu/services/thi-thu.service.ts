@@ -10,7 +10,7 @@ export async function taoDeThi(chuyenDeId: string): Promise<DeThi | null> {
   // Lấy câu hỏi từ view public
   const { data, error } = await supabase
     .from('cau_hoi_public')
-    .select('id, noi_dung, cac_lua_chon')
+    .select('id, noi_dung, cac_lua_chon, la_nhieu_dap_an')
     .eq('chuyen_de_id', chuyenDeId)
     .overlaps('phan_loai', [1, 2, 3]);
 

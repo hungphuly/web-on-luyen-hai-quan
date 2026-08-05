@@ -55,7 +55,10 @@ export async function importExcelQuestions(formData: FormData) {
       if (isNaN(tt) || tt <= 0) continue;
 
       const noi_dung = row[1]?.toString().trim();
-      const dap_an_dung = row[2]?.toString().trim().toLowerCase();
+      const rawDapAn = row[2]?.toString().trim().toLowerCase() || '';
+      const matchedOptions = Array.from(new Set(rawDapAn.match(/[abcd]/g) || [])).sort();
+      const dap_an_dung = matchedOptions.join(',');
+
       const lua_chon_a = row[3]?.toString().trim();
       const lua_chon_b = row[4]?.toString().trim();
       const lua_chon_c = row[5]?.toString().trim();
@@ -75,8 +78,8 @@ export async function importExcelQuestions(formData: FormData) {
       }
 
       // Validate đáp án
-      if (!['a', 'b', 'c', 'd'].includes(dap_an_dung)) {
-        errors.push({ row: tt, reason: `Đáp án "${dap_an_dung}" không hợp lệ. Chỉ chấp nhận A, B, C, D` });
+      if (matchedOptions.length === 0) {
+        errors.push({ row: tt, reason: `Đáp án "${row[2] || ''}" không hợp lệ. Phải chứa ít nhất 1 phương án A, B, C, D (Ví dụ: A hoặc A,B hoặc A,B,C)` });
       }
 
       // Validate căn cứ pháp lý
@@ -136,13 +139,24 @@ export async function updateCauHoi(id: string, formData: FormData) {
   
   const chuyen_de_id = formData.get('chuyen_de_id') as string;
   const noi_dung = formData.get('noi_dung') as string;
-  const dap_an_dung = formData.get('dap_an_dung') as string;
   const giai_thich_chi_tiet = formData.get('giai_thich_chi_tiet') as string;
   const can_cu_phap_ly = formData.get('can_cu_phap_ly') as string;
   const do_kho = parseInt(formData.get('do_kho') as string);
   const phan_loai_raw = formData.getAll('phan_loai');
   const phan_loai = phan_loai_raw.map(v => parseInt(v as string)).filter(n => !isNaN(n));
   
+  // Xử lý đáp án đúng (hỗ trợ nhiều đáp án qua Checkbox hoặc input text)
+  const dap_an_dung_raw = formData.getAll('dap_an_dung');
+  let dap_an_dung = '';
+  if (dap_an_dung_raw.length > 0) {
+    const validLetters = Array.from(new Set(
+      dap_an_dung_raw
+        .map(v => String(v).trim().toLowerCase())
+        .filter(v => ['a', 'b', 'c', 'd'].includes(v))
+    )).sort();
+    dap_an_dung = validLetters.join(',');
+  }
+
   const cac_lua_chon = {
     a: formData.get('lua_chon_a') as string,
     b: formData.get('lua_chon_b') as string,
@@ -151,7 +165,7 @@ export async function updateCauHoi(id: string, formData: FormData) {
   };
   
   if (!noi_dung || !chuyen_de_id || !dap_an_dung || !cac_lua_chon.a || !cac_lua_chon.b) {
-    return { error: 'Vui lòng điền đủ các trường bắt buộc' };
+    return { error: 'Vui lòng điền đủ các trường bắt buộc và chọn ít nhất 1 đáp án đúng' };
   }
 
   if (isNaN(do_kho) || phan_loai.length === 0) {

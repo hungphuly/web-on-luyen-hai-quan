@@ -8,7 +8,8 @@ export interface CauHoiAdmin {
     c: string;
     d: string;
   };
-  dap_an_dung: 'a' | 'b' | 'c' | 'd';
+  dap_an_dung: string;
+  la_nhieu_dap_an?: boolean;
   giai_thich_chi_tiet: string | null;
   can_cu_phap_ly: string;
   do_kho: 1 | 2 | 3;

@@ -9,6 +9,7 @@ export interface CauHoiThiThu {
   id: string;
   noi_dung: string;
   cac_lua_chon: any; // jsonb object
+  la_nhieu_dap_an?: boolean;
 }
 
 export interface KetQuaThiThu {
@@ -28,5 +29,6 @@ export interface ChiTietCauHoiThiThu {
   dap_an_dung: string;
   giai_thich_chi_tiet?: string;
   can_cu_phap_ly?: string;
+  la_nhieu_dap_an?: boolean;
   dung: boolean;
 }

@@ -8,6 +8,7 @@ export interface CauHoiPublic {
     c: string;
     d: string;
   };
+  la_nhieu_dap_an?: boolean;
 }
 
 export interface KetQuaChamDiem {

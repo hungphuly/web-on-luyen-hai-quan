@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { KyThi, KyThiPhienLamBai } from '@/lib/modules/ky-thi/types';
 import { saveKyThiAnswer, submitKyThi } from '@/lib/modules/ky-thi/actions';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Loader2, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Loader2, Clock, CheckCircle, XCircle, AlertTriangle, CheckSquare } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -19,7 +19,19 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
   const router = useRouter();
   const isCompleted = session.trang_thai === 'da_nop';
   
-  const [answers, setAnswers] = useState<Record<string, string>>(session.bai_lam_tam_thoi || {});
+  const [answers, setAnswers] = useState<Record<string, string[]>>(() => {
+    const raw = session.bai_lam_tam_thoi || {};
+    const parsed: Record<string, string[]> = {};
+    for (const [k, v] of Object.entries(raw)) {
+      if (Array.isArray(v)) {
+        parsed[k] = v;
+      } else if (typeof v === 'string' && v) {
+        parsed[k] = v.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      }
+    }
+    return parsed;
+  });
+
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
@@ -70,15 +82,26 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.bat_dau_luc, kyThi.thoi_gian_lam_bai, isCompleted]);
 
-  const handleSelect = (questionId: string, value: string) => {
+  const handleSelect = (questionId: string, value: string, isMulti: boolean) => {
     if (isCompleted) return;
     
-    const newAnswers = { ...answers, [questionId]: value };
+    const current = answers[questionId] || [];
+    let next: string[];
+    if (isMulti) {
+      next = current.includes(value)
+        ? current.filter(k => k !== value)
+        : [...current, value];
+    } else {
+      next = [value];
+    }
+    next.sort();
+
+    const newAnswers = { ...answers, [questionId]: next };
     setAnswers(newAnswers);
     
     setAutoSaveStatus('saving');
     // We don't block the UI, fire and forget
-    saveKyThiAnswer(kyThi.id, questionId, value).then(() => {
+    saveKyThiAnswer(kyThi.id, questionId, next.join(',')).then(() => {
       setAutoSaveStatus('saved');
       setTimeout(() => setAutoSaveStatus('idle'), 2000);
     });
@@ -104,6 +127,7 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
   };
 
   const questions: any[] = session.danh_sach_cau_hoi;
+  const answeredCount = Object.values(answers).filter(arr => arr && arr.length > 0).length;
 
   // Render mode: View Results
   if (isCompleted) {
@@ -142,23 +166,35 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
             {questions.map((q, idx) => {
               const res = results[q.id];
               const isCorrect = res?.isCorrect;
-              const selected = res?.selected;
+              const rawSelected = res?.selected;
+              const userSelected = Array.isArray(rawSelected) 
+                ? rawSelected 
+                : (typeof rawSelected === 'string' ? rawSelected.split(',').map(s => s.trim().toLowerCase()) : []);
+              const isMulti = Boolean(q.la_nhieu_dap_an || (typeof rawSelected === 'string' && rawSelected.includes(',')));
+              const shapeClass = isMulti ? "rounded-md" : "rounded-full";
 
               return (
                 <div key={q.id} className={cn("p-4 rounded-lg border", isCorrect ? "bg-green-50/50 border-green-200" : "bg-red-50/50 border-red-200")}>
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-4">
-                        <h4 className="font-bold text-gray-900 flex gap-2">
-                          <span>Câu {idx + 1}:</span>
-                          <span dangerouslySetInnerHTML={{ __html: q.noi_dung.replace(/\n/g, '<br/>') }} />
-                        </h4>
+                        <div>
+                          {isMulti && (
+                            <span className="inline-block text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200 mb-2">
+                              Câu hỏi chọn nhiều đáp án đúng (Ô vuông)
+                            </span>
+                          )}
+                          <h4 className="font-bold text-gray-900 flex gap-2">
+                            <span>Câu {idx + 1}:</span>
+                            <span dangerouslySetInnerHTML={{ __html: q.noi_dung.replace(/\n/g, '<br/>') }} />
+                          </h4>
+                        </div>
                         {isCorrect ? (
-                          <span className="shrink-0 px-3 py-1 bg-green-100 text-green-700 font-bold rounded-full text-xs flex items-center gap-1">
+                          <span className="shrink-0 px-3 py-1 bg-green-100 text-green-700 font-bold rounded-full text-xs flex items-center gap-1 ml-2">
                             <CheckCircle className="w-3 h-3" /> ĐÚNG
                           </span>
                         ) : (
-                          <span className="shrink-0 px-3 py-1 bg-red-100 text-red-700 font-bold rounded-full text-xs flex items-center gap-1">
+                          <span className="shrink-0 px-3 py-1 bg-red-100 text-red-700 font-bold rounded-full text-xs flex items-center gap-1 ml-2">
                             <XCircle className="w-3 h-3" /> SAI
                           </span>
                         )}
@@ -168,7 +204,7 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
                         {['a', 'b', 'c', 'd'].map(key => {
                           const val = q.cac_lua_chon[key];
                           if (!val) return null;
-                          const isSelected = selected === key;
+                          const isSelected = userSelected.includes(key.toLowerCase());
                           
                           return (
                             <div 
@@ -179,7 +215,7 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
                               )}
                             >
                               <div className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5",
+                                `w-6 h-6 ${shapeClass} flex items-center justify-center font-bold text-xs shrink-0 mt-0.5`,
                                 isSelected ? (isCorrect ? "bg-green-600 text-white" : "bg-red-600 text-white") : "bg-gray-100 text-gray-600"
                               )}>
                                 {key.toUpperCase()}
@@ -207,7 +243,7 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
       <div className="md:hidden sticky top-14 -mx-4 -mt-4 mb-2 px-4 py-2.5 bg-white/95 backdrop-blur-md border-b shadow-sm z-20 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap">
-            <span className="text-primary font-bold">{Object.keys(answers).length}</span>/{questions.length}
+            <span className="text-primary font-bold">{answeredCount}</span>/{questions.length}
           </span>
           {autoSaveStatus === 'saving' && (
             <span className="text-[11px] text-blue-500 flex items-center gap-1">
@@ -242,54 +278,66 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
 
       {/* Main question list */}
       <div className="flex-1 min-w-0 space-y-6 pb-6 md:pb-24">
-        {questions.map((q, idx) => (
-          <div key={q.id} id={`q-${idx}`} className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border scroll-mt-32">
-            <h3 className="font-bold text-base sm:text-lg mb-4 text-gray-900 flex gap-2.5 items-start">
-              <span className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-bold mt-0.5">
-                {idx + 1}
-              </span>
-              <span className="flex-1 leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.noi_dung.replace(/\n/g, '<br/>') }} />
-            </h3>
-            
-            <div className="space-y-2.5 sm:space-y-3 pl-0 sm:pl-10">
-              {['a', 'b', 'c', 'd'].map(key => {
-                const val = q.cac_lua_chon[key];
-                if (!val) return null;
-                const isSelected = answers[q.id] === key;
-                
-                return (
-                  <label 
-                    key={key} 
-                    className={cn(
-                      "flex items-start gap-3 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all hover:bg-gray-50/80",
-                      isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-gray-200"
-                    )}
-                  >
-                    <input 
-                      type="radio" 
-                      name={`q-${q.id}`} 
-                      value={key}
-                      checked={isSelected}
-                      onChange={() => handleSelect(q.id, key)}
-                      className="sr-only"
-                    />
-                    <div className={cn(
-                      "w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center font-bold text-xs mt-0.5 transition-colors",
-                      isSelected ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-500 group-hover:border-primary/50"
-                    )}>
-                      {key.toUpperCase()}
+        {questions.map((q, idx) => {
+          const isMulti = Boolean(q.la_nhieu_dap_an);
+          const currentSelected = answers[q.id] || [];
+          const shapeClass = isMulti ? "rounded-lg" : "rounded-full";
+
+          return (
+            <div key={q.id} id={`q-${idx}`} className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border scroll-mt-32 space-y-4">
+              <div className="flex items-center gap-2">
+                {isMulti ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-200">
+                    <CheckSquare className="w-3.5 h-3.5" />
+                    Chọn nhiều đáp án đúng (Ô vuông)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200">
+                    Chọn 1 đáp án đúng (Ô tròn)
+                  </span>
+                )}
+              </div>
+
+              <h3 className="font-bold text-base sm:text-lg text-gray-900 flex gap-2.5 items-start">
+                <span className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-bold mt-0.5">
+                  {idx + 1}
+                </span>
+                <span className="flex-1 leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.noi_dung.replace(/\n/g, '<br/>') }} />
+              </h3>
+              
+              <div className="space-y-2.5 sm:space-y-3 pl-0 sm:pl-10">
+                {['a', 'b', 'c', 'd'].map(key => {
+                  const val = q.cac_lua_chon[key];
+                  if (!val) return null;
+                  const isSelected = currentSelected.includes(key);
+                  
+                  return (
+                    <div 
+                      key={key} 
+                      onClick={() => handleSelect(q.id, key, isMulti)}
+                      className={cn(
+                        "flex items-start gap-3 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all hover:bg-gray-50/80",
+                        isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-gray-200"
+                      )}
+                    >
+                      <div className={cn(
+                        `w-6 h-6 shrink-0 ${shapeClass} border-2 flex items-center justify-center font-bold text-xs mt-0.5 transition-colors`,
+                        isSelected ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-500 group-hover:border-primary/50"
+                      )}>
+                        {key.toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <span className={cn("text-sm sm:text-base leading-relaxed break-words", isSelected ? "font-medium text-gray-900" : "text-gray-700")}>
+                          {val}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0 flex flex-col">
-                      <span className={cn("text-sm sm:text-base leading-relaxed break-words", isSelected ? "font-medium text-gray-900" : "text-gray-700")}>
-                        {val}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Mobile Question List Grid & Bottom Submit Button */}
         <div className="block md:hidden bg-white rounded-xl shadow-sm border p-4 sm:p-6 space-y-5">
@@ -299,13 +347,13 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
               Danh sách câu hỏi
             </h3>
             <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-              {Object.keys(answers).length}/{questions.length} đã làm
+              {answeredCount}/{questions.length} đã làm
             </span>
           </div>
 
           <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
             {questions.map((q, idx) => {
-              const isAnswered = !!answers[q.id];
+              const isAnswered = (answers[q.id] || []).length > 0;
               return (
                 <a 
                   key={q.id} 
@@ -358,12 +406,12 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-gray-700">Danh sách câu hỏi</h3>
               <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                {Object.keys(answers).length}/{questions.length}
+                {answeredCount}/{questions.length}
               </span>
             </div>
             <div className="grid grid-cols-5 gap-2">
               {questions.map((q, idx) => {
-                const isAnswered = !!answers[q.id];
+                const isAnswered = (answers[q.id] || []).length > 0;
                 return (
                   <a 
                     key={q.id} 
@@ -408,11 +456,11 @@ export function KyThiSessionClient({ session, kyThi }: Props) {
           </DialogHeader>
           <div className="py-4">
             <p className="text-gray-700 mb-4">
-              Bạn đã làm <strong className="text-primary">{Object.keys(answers).length} / {questions.length}</strong> câu hỏi.
+              Bạn đã làm <strong className="text-primary">{answeredCount} / {questions.length}</strong> câu hỏi.
             </p>
-            {Object.keys(answers).length < questions.length && (
+            {answeredCount < questions.length && (
               <p className="text-amber-600 bg-amber-50 p-3 rounded-lg text-sm font-medium border border-amber-200">
-                Chú ý: Vẫn còn câu hỏi chưa được chọn đáp án. Bạn có chắc chắn muốn nộp bài ngay bây giờ?
+                Chú ý: Vẫn còn {questions.length - answeredCount} câu hỏi chưa được chọn đáp án. Bạn có chắc chắn muốn nộp bài ngay bây giờ?
               </p>
             )}
             <p className="text-gray-500 text-sm mt-4 italic">
